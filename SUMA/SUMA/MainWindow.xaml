@@ -5,8 +5,15 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:SUMA"
         mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="800">
-    <Grid>
-        
+        Title="Suma - FactuSol" Height="633.602" Width="800">
+    <Grid Margin="0,0,0,3">
+        <TextBox Name ="UrlText" IsReadOnly="True" Height="33" Margin="38,20,101,0" TextWrapping="Wrap" Text="URL" VerticalAlignment="Top" HorizontalContentAlignment="Stretch" VerticalContentAlignment="Center" FontSize="16" Background="{x:Null}" BorderBrush="#FF9A9CA2"/>
+        <Button Name ="LookForFileButton" Content="..." HorizontalAlignment="Right" Margin="0,20,40,0" Width="74" Height="33" VerticalAlignment="Top" RenderTransformOrigin="-0.132,0.352" FontSize="24" VerticalContentAlignment="Center" Padding="1,-14,1,1" Click="LookForFileButton_Click"/>
+        <DataGrid Name ="ArticlesDatGrid" SelectionMode="Extended" Margin="38,103,40,274"/>
+        <TextBox HorizontalAlignment="Left" Height="24" Margin="38,74,0,0" TextWrapping="Wrap" Text="Cerca" VerticalAlignment="Top" Width="198" VerticalContentAlignment="Center" PreviewTextInput="TextBox_PreviewTextInput"/>
+        <Button Name ="ImportEansButton" Content="Importa EANS" Margin="0,0,40,23" HorizontalAlignment="Right" Width="119" Height="31" VerticalAlignment="Bottom" Click="ImportEansButton_Click"/>
+        <Button Name ="ImportArticlesButton" Content="Importa articles" Margin="0,0,177,23" HorizontalAlignment="Right" Width="115" Height="31" VerticalAlignment="Bottom" Click="ImportArticlesButton_Click"/>
+        <ProgressBar Name="ParseProgressBar" Height="34" Margin="117,249,130,0" VerticalAlignment="Top"/>
+        <DataGrid Name ="EansDatGrid" Margin="38,0,40,87" Height="168" VerticalAlignment="Bottom"/>
     </Grid>
 </Window>
