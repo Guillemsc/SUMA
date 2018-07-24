@@ -36,7 +36,17 @@ namespace SUMA.Managers
 
             if (line[cursor_pos] == 'E')
             {
-                ParseCodiEan(line, cursor_pos);
+                Producte prod = f.GetProducte();
+
+                if (prod != null)
+                {
+                    CodiEan curr_ean = new CodiEan();
+
+                    ParseCodiEan(line, cursor_pos, ref curr_ean);
+
+                    prod.codis_ean.Add(curr_ean);
+                    f.eans.Add(curr_ean);
+                }
             }
 
             if (line[cursor_pos] == 'F')
@@ -81,7 +91,8 @@ namespace SUMA.Managers
             {
                 if (curr_text_line < async_text_lines.Length)
                 {
-                    ParseLine(async_text_lines[curr_text_line++]);
+                    ParseLine(async_text_lines[curr_text_line]);
+                    ++curr_text_line;
 
                     if (progress_callback != null)
                         progress_callback(GetParseProcess());
@@ -178,13 +189,11 @@ namespace SUMA.Managers
             cursor_pos += guide.tipus_registre;
 
             // Codi article ----------------------------------------------
-            string codi_article_str = "";
+            prod.codi_article = "";
             for (int i = 0; i < guide.producte_codi_article; ++i)
             {
-                codi_article_str += text[i + cursor_pos];
+                prod.codi_article += text[i + cursor_pos];
             }
-
-            int.TryParse(codi_article_str, out prod.codi_article);
 
             cursor_pos += guide.producte_codi_article;
 
@@ -199,8 +208,6 @@ namespace SUMA.Managers
                 prod.descripcio += text[i + cursor_pos];
             }
 
-            prod.descripcio.Replace("º", "");
-
             cursor_pos += guide.descripcio;
 
             // Unitats caixa ----------------------------------------------
@@ -210,7 +217,9 @@ namespace SUMA.Managers
                 unitats_caixa_str += text[i + cursor_pos];
             }
 
-            int.TryParse(unitats_caixa_str, out prod.unitats_caixa);
+            int unitats_caixa = 0;
+            int.TryParse(unitats_caixa_str, out unitats_caixa);
+            prod.unitats_caixa = unitats_caixa;
 
             cursor_pos += guide.unitats_caixa;
 
@@ -221,12 +230,14 @@ namespace SUMA.Managers
                 unitats_fraccio_str += text[i + cursor_pos];
             }
 
-            int.TryParse(unitats_fraccio_str, out prod.unitats_fraccio);
+            int unitats_fraccio = 0;
+            int.TryParse(unitats_fraccio_str, out unitats_fraccio);
+            prod.unitats_fraccio = unitats_fraccio;
 
             cursor_pos += guide.unitats_fraccio;
 
             // Marca de pes -----------------------------------------------
-            prod.marca_de_pes += guide.GetMarcaDePes(text[cursor_pos]);
+            prod.marca_de_pes = guide.GetMarcaDePes(text[cursor_pos]);
 
             cursor_pos += guide.marca_pes;
 
@@ -243,7 +254,9 @@ namespace SUMA.Managers
             }
             preu_unitari_str += preu_unitari_enters_str + "." + preu_unitari_dec_str;
 
-            double.TryParse(preu_unitari_str, NumberStyles.Float, CultureInfo.InvariantCulture, out prod.preu_unitari);
+            double preu_unitari = 0.0f;
+            double.TryParse(preu_unitari_str, NumberStyles.Float, CultureInfo.InvariantCulture, out preu_unitari);
+            prod.preu_unitari = preu_unitari;
 
             cursor_pos += guide.preu_unitari;
 
@@ -260,7 +273,9 @@ namespace SUMA.Managers
             }
             preu_venda_public_str += preu_venda_public_enters_str + "." + preu_venda_public_dec_str;
 
-            double.TryParse(preu_venda_public_str, NumberStyles.Float, CultureInfo.InvariantCulture, out prod.preu_venta_public_recomanat);
+            double preu_venta_public_recomanat = 0.0f;
+            double.TryParse(preu_venda_public_str, NumberStyles.Float, CultureInfo.InvariantCulture, out preu_venta_public_recomanat);
+            prod.preu_venta_public_recomanat = preu_venta_public_recomanat;
 
             cursor_pos += guide.preu_venda_public_recomanat;
 
@@ -277,7 +292,9 @@ namespace SUMA.Managers
             }
             preu_fraccio_str += preu_fraccio_enters_str + "." + preu_fraccio_dec_str;
 
-            double.TryParse(preu_fraccio_str, NumberStyles.Float, CultureInfo.InvariantCulture, out prod.preu_de_fraccio);
+            double preu_de_fraccio = 0.0f;
+            double.TryParse(preu_fraccio_str, NumberStyles.Float, CultureInfo.InvariantCulture, out preu_de_fraccio);
+            prod.preu_de_fraccio = preu_de_fraccio;
 
             cursor_pos += guide.preu_fraccio;
 
@@ -293,7 +310,9 @@ namespace SUMA.Managers
                 codi_familia_str += text[i + cursor_pos];
             }
 
-            int.TryParse(codi_familia_str, out prod.codi_familia);
+            int codi_familia = 0;
+            int.TryParse(codi_familia_str, out codi_familia);
+            prod.codi_familia = codi_familia;
 
             cursor_pos += guide.codi_familia;
 
@@ -305,7 +324,9 @@ namespace SUMA.Managers
                 codi_subfamilia_str += text[i + cursor_pos];
             }
 
-            int.TryParse(codi_subfamilia_str, out prod.codi_sub_familia);
+            int codi_sub_familia = 0;
+            int.TryParse(codi_subfamilia_str, out codi_sub_familia);
+            prod.codi_sub_familia = codi_sub_familia;
 
             cursor_pos += guide.codi_sub_familia;
 
@@ -315,50 +336,38 @@ namespace SUMA.Managers
             cursor_pos += guide.unitat_de_mesura;
 
             // Factor de conversio ------------------------------------------
-            string factor_de_conversio = "";
+            string factor_de_conversio_str = "";
             for (int i = 0; i < guide.factor_de_conversio; ++i)
             {
-                factor_de_conversio += text[i + cursor_pos];
+                factor_de_conversio_str += text[i + cursor_pos];
             }
 
-            double.TryParse(factor_de_conversio, NumberStyles.Float, CultureInfo.InvariantCulture, out prod.factor_de_conversio);
+            double factor_de_conversio = 0.0f;
+            double.TryParse(factor_de_conversio_str, NumberStyles.Float, CultureInfo.InvariantCulture, out factor_de_conversio);
+            prod.factor_de_conversio = factor_de_conversio;
 
             cursor_pos += guide.factor_de_conversio;
         }
 
-        private void ParseCodiEan(string text, int cursor_pos)
+        private void ParseCodiEan(string text, int cursor_pos, ref CodiEan ean)
         {
             cursor_pos += guide.tipus_registre;
 
-            Fitxer f = Managers.DataManager.Instance.GetFitxer();
-
-            Producte prod = f.GetProducte();
-
-            CodiEan ean = new CodiEan();
-
             // Codi article ------------------------------------------------
-            string codi_article_str = "";
             for(int i = 0; i < guide.ean_codi_article; ++i)
             {
-                codi_article_str += text[i + cursor_pos];
+                ean.codi_article += text[i + cursor_pos];
             }
-
-            int.TryParse(codi_article_str, out ean.codi_article);
 
             cursor_pos += guide.ean_codi_article;
 
             // Codi ean ----------------------------------------------------
-            string codi_ean_str = "";
             for (int i = 0; i < guide.codi_ean; ++i)
             {
-                codi_ean_str += text[i + cursor_pos];
+                ean.codi_ean += text[i + cursor_pos];
             }
 
-            int.TryParse(codi_ean_str, out ean.codi_ean);
-
             cursor_pos += guide.codi_ean;
-
-            prod.codis_ean.Add(ean);
         }
 
         private void ParseFinalFitxer(string text, int cursor_pos)
@@ -379,7 +388,7 @@ namespace SUMA.Managers
             cursor_pos += guide.quantitat_registres;
         }
 
-        private ParseGuide guide = new ParseGuide();
+        public ParseGuide guide = new ParseGuide();
     }
 
     public class ParseGuide

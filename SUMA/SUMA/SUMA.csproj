@@ -36,6 +36,7 @@
   <ItemGroup>
     <Reference Include="System" />
     <Reference Include="System.Data" />
+    <Reference Include="System.Data.Linq" />
     <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Xml" />
     <Reference Include="Microsoft.CSharp" />
@@ -55,8 +56,17 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="DataSetSuma.cs">
+      <DependentUpon>DataSetSuma.xsd</DependentUpon>
+    </Compile>
+    <Compile Include="DataSetSuma.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>DataSetSuma.xsd</DependentUpon>
+    </Compile>
     <Compile Include="Managers\DataManager.cs" />
     <Compile Include="Managers\FileSystemManager.cs" />
+    <Compile Include="Managers\LocalDBManager.cs" />
     <Compile Include="Managers\ParserManager.cs" />
     <Compile Include="Utilities\Singleton.cs" />
     <Page Include="MainWindow.xaml">
@@ -90,6 +100,18 @@
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
+    <None Include="app.config" />
+    <None Include="DataSetSuma.xsc">
+      <DependentUpon>DataSetSuma.xsd</DependentUpon>
+    </None>
+    <None Include="DataSetSuma.xsd">
+      <SubType>Designer</SubType>
+      <Generator>MSDataSetGenerator</Generator>
+      <LastGenOutput>DataSetSuma.Designer.cs</LastGenOutput>
+    </None>
+    <None Include="DataSetSuma.xss">
+      <DependentUpon>DataSetSuma.xsd</DependentUpon>
+    </None>
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>
@@ -101,6 +123,11 @@
   <ItemGroup>
     <Folder Include="Forms\" />
     <Folder Include="Images\" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="ArticlesMAGSA.accdb">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

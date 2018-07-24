@@ -28,7 +28,7 @@ namespace SUMA.Managers
         {
             string[] ret;
 
-            ret = File.ReadAllLines(path);
+            ret = File.ReadAllLines(path, Encoding.GetEncoding("iso-8859-1"));
 
             return ret;
         }
