@@ -77,7 +77,8 @@ namespace SUMA.Managers
             {
                 try
                 {
-                    connection.Open();
+                    if(connection.State != ConnectionState.Open)
+                        connection.Open();
                 }
                 catch (System.Data.OleDb.OleDbException exception)
                 {
@@ -93,7 +94,8 @@ namespace SUMA.Managers
             {
                 try
                 {
-                    connection.Close();
+                    if(connection.State == ConnectionState.Open)
+                        connection.Close();
                 }
                 catch (System.Data.OleDb.OleDbException exception)
                 {

@@ -266,13 +266,19 @@ namespace SUMA
                 EansDatGrid.IsReadOnly = true;
 
                 for (int i = 0; i < prods.Count; ++i)
-                    EansDatGrid.Items.Add(prods[i].codis_ean);
+                    for(int e = 0; e < prods[i].codis_ean.Count; ++e)
+                        EansDatGrid.Items.Add(prods[i].codis_ean[e]);
             }
         }
 
         private void ImportEansButton_Click(object sender, RoutedEventArgs e)
         {
+            if (ArticlesDatGrid.SelectedItems != null && ArticlesDatGrid.SelectedItems.Count > 0)
+            {
+                List<Managers.Producte> selected = ArticlesDatGrid.SelectedItems.OfType<Managers.Producte>().ToList();
 
+                Managers.FactuSolDBManager.Instance.AddEans(selected);
+            }
         }
 
         private void ImportArticlesButton_Click(object sender, RoutedEventArgs e)
