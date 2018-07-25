@@ -24,7 +24,6 @@ namespace SUMA
     /// </summary>
     public partial class MainWindow : Window
     {
-
         public MainWindow()
         {
             InitializeComponent();
@@ -277,7 +276,7 @@ namespace SUMA
             {
                 List<Managers.Producte> selected = ArticlesDatGrid.SelectedItems.OfType<Managers.Producte>().ToList();
 
-                Managers.FactuSolDBManager.Instance.AddEans(selected);
+                Managers.FactuSolDBManager.Instance.AddEansAsync(selected, OnFactuSolEanAddTick, OnFactuSolEanFinish);
             }
         }
 
@@ -286,8 +285,35 @@ namespace SUMA
             if (ArticlesDatGrid.SelectedItems != null && ArticlesDatGrid.SelectedItems.Count > 0)
             {
                 List<Managers.Producte> selected = ArticlesDatGrid.SelectedItems.OfType<Managers.Producte>().ToList();
-                Managers.FactuSolDBManager.Instance.AddProductes(selected);
+                Managers.FactuSolDBManager.Instance.AddProductesAsync(selected, OnFactuSolProducteAddTick, OnFactuSolProductesAddFinish, 
+                    OnFactuSolEanAddTick, OnFactuSolEanFinish);
             }
+        }
+
+        private void OnFactuSolProducteAddTick(float progress)
+        {
+            ParseProgressBar.Visibility = Visibility.Visible;
+            ParseProgressBar.Value = progress;
+            LoadInfoText.Visibility = Visibility.Visible;
+            LoadInfoText.Content = "Afegint productes... (" + progress + "%)";
+        }
+
+        private void OnFactuSolProductesAddFinish()
+        {
+            LoadInfoText.Visibility = Visibility.Hidden;
+        }
+
+        private void OnFactuSolEanAddTick(float progress)
+        {
+            ParseProgressBar.Visibility = Visibility.Visible;
+            ParseProgressBar.Value = progress;
+            LoadInfoText.Visibility = Visibility.Visible;
+            LoadInfoText.Content = "Afegint eans... (" + progress + "%)";
+        }
+
+        private void OnFactuSolEanFinish()
+        {
+            LoadInfoText.Visibility = Visibility.Hidden;
         }
 
         private void CercaButton_Click(object sender, RoutedEventArgs e)

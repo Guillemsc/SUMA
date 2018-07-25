@@ -9,6 +9,11 @@ using System.Windows;
 
 namespace SUMA.Managers
 {
+    delegate void ProductAddProcessTick(float progress);
+    delegate void ProductAddFinished();
+    delegate void EanAddProcessTick(float progress);
+    delegate void EanAddFinished();
+
     class LocalDBManager : Singleton<LocalDBManager>
     {
         private string connection_string = "";

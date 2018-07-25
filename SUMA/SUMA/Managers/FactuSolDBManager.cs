@@ -48,8 +48,12 @@ namespace SUMA.Managers
 
                     if (ret && already_exists)
                     {
+                        add_productes_timer.Stop();
+
                         string message = "El producte amb codi: " + prod.codi_article + " ja esta a la base de dades, vol reemplacar-lo?";
                         MessageBoxResult messageBoxResult = System.Windows.MessageBox.Show(string.Format(message), "Conflicte", System.Windows.MessageBoxButton.YesNo, System.Windows.MessageBoxImage.Warning);
+
+                        add_productes_timer.Start();
 
                         if (messageBoxResult == MessageBoxResult.Yes)
                         {
@@ -173,8 +177,12 @@ namespace SUMA.Managers
 
                 if (!has_product)
                 {
+                    add_eans_timer.Stop();
+
                     string message = "El producte amb codi: " + prod.codi_article + " no està a la base de dades, vol incloure'l?";
                     MessageBoxResult messageBoxResult = System.Windows.MessageBox.Show(string.Format(message), "Conflicte", System.Windows.MessageBoxButton.YesNo, System.Windows.MessageBoxImage.Warning);
+
+                    add_eans_timer.Start();
 
                     if (messageBoxResult == MessageBoxResult.Yes)
                     {
@@ -221,75 +229,184 @@ namespace SUMA.Managers
             return ret;
         }
 
-        public bool AddProductes(List<Managers.Producte> prod, bool succes_message = true)
+        private System.Windows.Forms.Timer add_productes_timer = null;
+        private List<Managers.Producte> prods_to_add = null;
+        private int curr_prod = 0;
+        private bool adding_productes = false;
+        private ProductAddProcessTick on_product_add_tick;
+        private ProductAddFinished on_product_add_finished;
+        private EanAddProcessTick on_product_ean_add_tick;
+        private EanAddFinished on_product_ean_add_finished;
+        private bool product_succes_msg = true;
+        public void AddProductesAsync(List<Managers.Producte> prod, ProductAddProcessTick product_add_tick, ProductAddFinished product_add_finished, EanAddProcessTick on_ean_add_tick, EanAddFinished ean_add_finished, bool succes_message = true)
         {
-            bool ret = false;
-
-            if (prod != null)
+            if (!adding_productes)
             {
-                if (connection != null)
+                on_product_add_tick -= product_add_tick;
+                on_product_add_tick += product_add_tick;
+                on_product_add_finished -= product_add_finished;
+                on_product_add_finished += product_add_finished;
+
+                on_product_ean_add_tick -= on_ean_add_tick;
+                on_product_ean_add_tick += on_ean_add_tick;
+
+                on_product_ean_add_finished -= ean_add_finished;
+                on_product_ean_add_finished += ean_add_finished;
+
+                on_product_ean_add_finished -= ProductEanAddFinished;
+                on_product_ean_add_finished += ProductEanAddFinished;
+
+                curr_prod = 0;
+                prods_to_add = prod;
+                product_succes_msg = succes_message;
+                add_productes_timer = new System.Windows.Forms.Timer();
+                add_productes_timer.Tick += new EventHandler(AddProductesAsyncTimeStep);
+                add_productes_timer.Interval = 100; // in miliseconds
+                add_productes_timer.Start();
+
+                adding_productes = true;
+            }
+        }
+
+        private void AddProductesAsyncTimeStep(Object stateInfo, EventArgs e)
+        {
+            if (adding_productes)
+            {
+                for (int i = 0; i < 1; ++i)
                 {
-                    for (int i = 0; i < prod.Count; ++i)
+                    if (curr_prod < prods_to_add.Count)
                     {
-                        ret = AddProducte(prod[i]);
+                        AddProducte(prods_to_add[curr_prod]);
+                        ++curr_prod;
 
-                        if (!ret)
-                            break;
+                        if (on_product_add_tick != null)
+                            on_product_add_tick(GetProductAddProcess());
                     }
-
-                    ret = AddEans(prod, false);
-
-                    if(ret && succes_message)
+                    else
                     {
-                        string message = "Introducció de Productes finalitzada amb èxit";
-                        MessageBoxResult messageBoxResult = System.Windows.MessageBox.Show(string.Format(message), "Èxit", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Information);
-                    }
+                        if (on_product_add_finished != null)
+                            on_product_add_finished();
 
+                        adding_productes = false;
+                        add_productes_timer.Stop();
+
+                        AddEansAsync(prods_to_add, on_product_ean_add_tick, on_product_ean_add_finished, false);
+
+                        break;
+                    }
                 }
             }
+        }
+
+        private void ProductEanAddFinished()
+        {
+            if (product_succes_msg)
+            {
+                string message = "Introducció de Productes finalitzada amb èxit";
+                MessageBoxResult messageBoxResult = System.Windows.MessageBox.Show(string.Format(message), "Èxit", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Information);
+            }
+        }
+
+        private float GetProductAddProcess()
+        {
+            float ret = 0;
+
+            if (adding_productes)
+            {
+                if (prods_to_add.Count != 0)
+                    ret = ((float)100 / (float)prods_to_add.Count) * curr_prod;
+            }
+
             return ret;
         }
 
-        public bool AddEans(List<Managers.Producte> prod, bool succes_missage = true)
+        private System.Windows.Forms.Timer add_eans_timer = null;
+        private List<Managers.Producte> eans_to_add = null;
+        private int curr_ean = 0;
+        private int curr_prod_ean = 0;
+        private bool curr_product_not_added = false;
+        private bool adding_eans = false;
+        private EanAddProcessTick on_ean_add_tick;
+        private EanAddFinished on_ean_add_finished;
+        private bool ean_succes_msg = true;
+        public void AddEansAsync(List<Managers.Producte> prod, EanAddProcessTick ean_add_tick, EanAddFinished ean_add_finished, bool succes_message = true)
         {
-            bool ret = false;
-
-            if (prod != null)
+            if (!adding_eans)
             {
-                if (connection != null)
+                on_ean_add_tick -= ean_add_tick;
+                on_ean_add_tick += ean_add_tick;
+                on_ean_add_finished -= ean_add_finished;
+                on_ean_add_finished += ean_add_finished;
+
+                curr_ean = 0;
+                curr_prod_ean = 0;
+                eans_to_add = prod;
+                ean_succes_msg = succes_message;
+                add_eans_timer = new System.Windows.Forms.Timer();
+                add_eans_timer.Tick += new EventHandler(AddEansAsyncTimeStep);
+                add_eans_timer.Interval = 100; // in miliseconds
+                add_eans_timer.Start();
+
+                adding_eans = true;
+            }
+        }
+
+        private void AddEansAsyncTimeStep(Object stateInfo, EventArgs e)
+        {
+            if (adding_eans)
+            {
+                for (int i = 0; i < 1; ++i)
                 {
-                    Managers.DBManager.Instance.OpenConexion(connection);
-
-                    for (int p = 0; p < prod.Count; ++p)
+                    if (curr_prod_ean < eans_to_add.Count)
                     {
-                        Managers.Producte curr_prod = prod[p];
-
-                        for (int i = 0; i < curr_prod.codis_ean.Count; ++i)
+                        if (eans_to_add[curr_prod_ean].codis_ean.Count > curr_ean)
                         {
-                            bool product_not_added = false;
+                            if(!curr_product_not_added)
+                                AddEan(eans_to_add[curr_prod_ean], eans_to_add[curr_prod_ean].codis_ean[curr_ean], out curr_product_not_added);
 
-                            ret = AddEan(curr_prod, curr_prod.codis_ean[i], out product_not_added);
-
-                            if (product_not_added)
-                                break;
-
-                            if (!ret)
-                                break;
+                            ++curr_ean;
                         }
+                        else
+                        {
+                            curr_product_not_added = false;
+                            curr_ean = 0;
+                            ++curr_prod_ean;
+                        }
+
+                        if (on_ean_add_tick != null)
+                            on_ean_add_tick(GetEansAddProcess());
                     }
-
-                    Managers.DBManager.Instance.CloseConexion(connection);
-
-                    if(ret && succes_missage)
+                    else
                     {
-                        string message = "Introducció de EANS finalitzada amb èxit";
-                        MessageBoxResult messageBoxResult = System.Windows.MessageBox.Show(string.Format(message), "Èxit", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Information);
-                    }
+                        if (on_ean_add_finished != null)
+                            on_ean_add_finished();
 
+                        adding_eans = false;
+                        add_eans_timer.Stop();
+
+                        if(ean_succes_msg)
+                        {
+                            string message = "Introducció de Eans finalitzada amb èxit";
+                            MessageBoxResult messageBoxResult = System.Windows.MessageBox.Show(string.Format(message), "Èxit", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Information);
+                        }
+
+                        break;
+                    }
                 }
             }
-            return ret;
         }
 
+        private float GetEansAddProcess()
+        {
+            float ret = 0;
+
+            if (adding_eans)
+            {
+                if (eans_to_add.Count != 0)
+                    ret = ((float)100 / (float)eans_to_add.Count) * curr_prod_ean;
+            }
+
+            return ret;
+        }
     }
 }
