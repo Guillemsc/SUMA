@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<configuration>
+	<servers local = "C:\Users\usuari\Documents\GitHub\SUMA\DataTest\ArticlesMAGSA.accdb"/>
+	<servers factu_sol = "empty"/>
+</configuration>

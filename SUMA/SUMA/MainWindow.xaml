@@ -9,7 +9,7 @@
     <Grid Margin="0,0,0,3">
         <TextBox Name ="UrlText" IsReadOnly="True" Height="33" Margin="38,20,101,0" TextWrapping="Wrap" Text="URL" VerticalAlignment="Top" HorizontalContentAlignment="Stretch" VerticalContentAlignment="Center" FontSize="16" Background="{x:Null}" BorderBrush="#FF9A9CA2"/>
         <Button Name ="LookForFileButton" Content="..." HorizontalAlignment="Right" Margin="0,20,40,0" Width="74" Height="33" VerticalAlignment="Top" RenderTransformOrigin="-0.132,0.352" FontSize="24" VerticalContentAlignment="Center" Padding="1,-14,1,1" Click="LookForFileButton_Click"/>
-        <DataGrid Name="ArticlesDatGrid" SelectionMode="Extended" Margin="38,145,40,268" PreviewMouseLeftButtonDown="ArticlesDatGrid_PreviewMouseLeftButtonDown"/>
+        <DataGrid Name="ArticlesDatGrid" SelectionMode="Extended" Margin="38,145,40,268" SelectionChanged="ArticlesDatGrid_SelectionChanged"/>
         <TextBox Name ="BuscadorTextBox" HorizontalAlignment="Left" Height="24" Margin="38,93,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="198" VerticalContentAlignment="Center"/>
         <Button Name ="ImportEansButton" Content="Importa EANS" Margin="0,0,40,13" HorizontalAlignment="Right" Width="119" Height="31" VerticalAlignment="Bottom" Click="ImportEansButton_Click"/>
         <Button Name ="ImportArticlesButton" Content="Importa articles" Margin="0,0,177,13" HorizontalAlignment="Right" Width="115" Height="31" VerticalAlignment="Bottom" Click="ImportArticlesButton_Click"/>

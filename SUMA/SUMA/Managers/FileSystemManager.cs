@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Xml.Linq;
 
 namespace SUMA.Managers
 {
@@ -26,11 +27,17 @@ namespace SUMA.Managers
 
         public string[] GetFileDataText(string path)
         {
-            string[] ret;
+            string[] ret = new string[0];
 
-            ret = File.ReadAllLines(path, Encoding.GetEncoding("iso-8859-1"));
-
+            if (File.Exists(path))
+                ret = File.ReadAllLines(path, Encoding.GetEncoding("iso-8859-1"));
+            
             return ret;
+        }
+
+        public XDocument LoadConfigXML()
+        {
+            return XDocument.Load(AppDomain.CurrentDomain.BaseDirectory + "Config.xml");
         }
     }
 }

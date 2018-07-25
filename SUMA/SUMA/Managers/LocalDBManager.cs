@@ -11,8 +11,8 @@ namespace SUMA.Managers
 {
     class LocalDBManager : Singleton<LocalDBManager>
     {
-        string connection_string = "";
-        OleDbConnection connection = null;
+        private string connection_string = "";
+        private OleDbConnection connection = null;
 
         public void SetDataBasePath(string set)
         {
@@ -20,118 +20,23 @@ namespace SUMA.Managers
             connection = new OleDbConnection(connection_string);
         }
 
-        private bool ExecuteQuery(OleDbCommand cmd)
-        {
-            bool ret = false;
-
-            if (connection != null)
-            {
-                if (cmd != null)
-                {
-                    try
-                    {
-                        cmd.ExecuteNonQuery();
-
-                        ret = true;
-                    }
-                    catch (System.Data.OleDb.OleDbException exception)
-                    {
-                        string errors = "S'ha de tancar el fitxer Acces";
-                        MessageBoxResult messageBoxResult = System.Windows.MessageBox.Show(string.Format(exception.Message),
-                       "Error", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Error);
-
-                        ret = false;
-                    }
-                    catch (System.InvalidOperationException exception)
-                    {
-                        MessageBoxResult messageBoxResult = System.Windows.MessageBox.Show(string.Format(exception.Message),
-                        "Error", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Error);
-                    }
-                }
-            }
-
-            return ret;
-        }
-
-        private OleDbDataReader ExecuteReader(OleDbCommand cmd)
-        {
-            OleDbDataReader ret = null;
-
-            if (connection != null)
-            {
-                if (cmd != null)
-                {
-                    try
-                    {
-                        ret = cmd.ExecuteReader();
-                    }
-                    catch (System.Data.OleDb.OleDbException exception)
-                    {
-                        MessageBoxResult messageBoxResult = System.Windows.MessageBox.Show(string.Format(exception.Message),
-                       "Error", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Error);
-                    }
-                    catch(System.InvalidOperationException exception)
-                    {
-                        MessageBoxResult messageBoxResult = System.Windows.MessageBox.Show(string.Format(exception.Message),
-                        "Error", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Error);
-                    }
-                }
-            }
-
-            return ret;
-        }
-
-        private void OpenConexion()
-        {
-            if (connection != null)
-            {
-                try
-                {
-                    connection.Open();
-                }
-                catch (System.Data.OleDb.OleDbException exception)
-                {
-                    MessageBoxResult messageBoxResult = System.Windows.MessageBox.Show(string.Format(exception.Message),
-                    "Error", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Error);
-                }
-            }   
-        }    
-
-        private void CloseConexion()
-        {
-            if (connection != null)
-            {
-                try
-                {
-                    connection.Close();
-                }
-                catch (System.Data.OleDb.OleDbException exception)
-                {
-                    MessageBoxResult messageBoxResult = System.Windows.MessageBox.Show(string.Format(exception.Message),
-                    "Error", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Error);
-                }
-            }
-        }
-
-
         public bool ClearDataBase()
         {
             bool ret = false;
+            
+            Managers.DBManager.Instance.OpenConexion(connection);
 
-            if (connection != null)
-            {
-                OpenConexion();
+            OleDbCommand Cmd = new OleDbCommand("DELETE FROM ArticlesMagsa", connection);
+            OleDbCommand Cmd2 = new OleDbCommand("DELETE FROM BarresMagsa", connection);
+            OleDbCommand Cmd3 = new OleDbCommand("DELETE FROM RegistreImportacio", connection);
 
-                OleDbCommand Cmd = new OleDbCommand("DELETE FROM ArticlesMagsa", connection);
-                OleDbCommand Cmd2 = new OleDbCommand("DELETE FROM BarresMagsa", connection);
-                OleDbCommand Cmd3 = new OleDbCommand("DELETE FROM RegistreImportacio", connection);
+            if (Managers.DBManager.Instance.ExecuteQuery(connection, Cmd) &&
+               Managers.DBManager.Instance.ExecuteQuery(connection, Cmd2) &&
+               Managers.DBManager.Instance.ExecuteQuery(connection, Cmd3))
+                ret = true;
 
-                if (ExecuteQuery(Cmd) && ExecuteQuery(Cmd2) && ExecuteQuery(Cmd3))
-                    ret = true;
-
-                CloseConexion();
-            }
-
+            Managers.DBManager.Instance.CloseConexion(connection);
+            
             return ret;
         }
 
@@ -141,19 +46,19 @@ namespace SUMA.Managers
 
             if (connection != null)
             {
-                OpenConexion();
+                Managers.DBManager.Instance.OpenConexion(connection);
 
                 Fitxer f = DataManager.Instance.NewFitxer();
 
                 OleDbCommand Cmd = new OleDbCommand("SELECT * FROM ArticlesMagsa", connection);
 
-                OleDbDataReader data = ExecuteReader(Cmd);
+                OleDbDataReader data = Managers.DBManager.Instance.ExecuteReader(connection, Cmd);
 
                 if (data != null)
                 {
                     while (data.Read())
                     {
-                        Producte prod = f.NewProducte();
+                        Producte prod = new Producte();
 
                         prod.codi_article = data.GetString(1);
                         prod.marca_de_baixa = ParserManager.Instance.guide.GetMarcaDeBaixa(data.GetString(2)[0]);
@@ -172,16 +77,16 @@ namespace SUMA.Managers
                         prod.factor_de_conversio = 0; int.TryParse(data.GetString(14), out factor_de_conversio);
                         prod.factor_de_conversio = factor_de_conversio;
                         prod.unitats_caixa = Convert.ToInt32(data.GetValue(15));
-                    }
 
-                    f.NewProducte();
+                        f.productes.Add(prod);
+                    }
 
                     ret = true;
                 }
 
                 OleDbCommand Cmd2 = new OleDbCommand("SELECT * FROM BarresMagsa", connection);
 
-                OleDbDataReader data2 = ExecuteReader(Cmd2);
+                OleDbDataReader data2 = Managers.DBManager.Instance.ExecuteReader(connection, Cmd2);
 
                 if (data2 != null)
                 {
@@ -202,7 +107,7 @@ namespace SUMA.Managers
 
                 OleDbCommand Cmd3 = new OleDbCommand("SELECT * FROM RegistreImportacio", connection);
 
-                OleDbDataReader data3 = ExecuteReader(Cmd3);
+                OleDbDataReader data3 = Managers.DBManager.Instance.ExecuteReader(connection, Cmd3);
 
                 if(data3 != null)
                 {
@@ -213,7 +118,7 @@ namespace SUMA.Managers
                     }
                 }
 
-                CloseConexion();
+                Managers.DBManager.Instance.CloseConexion(connection);
             }
             return ret;
         }
@@ -224,7 +129,7 @@ namespace SUMA.Managers
 
             if (fitx != null)
             {
-                OpenConexion();
+                Managers.DBManager.Instance.OpenConexion(connection);
 
                 string command = "INSERT INTO RegistreImportacio(";
 
@@ -242,9 +147,9 @@ namespace SUMA.Managers
                 Cmd.Parameters.Add("@NomFitxer", OleDbType.VarChar, 30).Value = fitx.nom;
                 Cmd.Parameters.Add("@DataImport", OleDbType.VarChar, 30).Value = fitx.data_importacio.ToString();
 
-                ret = ExecuteQuery(Cmd);
+                ret = Managers.DBManager.Instance.ExecuteQuery(connection, Cmd);
 
-                CloseConexion();
+                Managers.DBManager.Instance.CloseConexion(connection);
             }
 
             return ret;
@@ -258,7 +163,7 @@ namespace SUMA.Managers
             {
                 if (connection != null)
                 {
-                    OpenConexion();
+                    Managers.DBManager.Instance.OpenConexion(connection);
 
                     string data_actual = DateTime.Now.ToShortTimeString();
 
@@ -316,9 +221,9 @@ namespace SUMA.Managers
                         Cmd.Parameters.Add("@Caixa", OleDbType.Integer).Value = curr_prod.unitats_caixa;
                         Cmd.Parameters.Add("@Fraccio", OleDbType.Integer).Value = curr_prod.unitats_fraccio;
                         Cmd.Parameters.Add("@Pes", OleDbType.VarChar, 1).Value = curr_prod.marca_de_pes_str;
-                        Cmd.Parameters.Add("@P_Cost", OleDbType.Decimal).Value = curr_prod.preu_unitari.ToString().Replace(",", ".");
-                        Cmd.Parameters.Add("@P_Recomanat", OleDbType.Decimal).Value = curr_prod.preu_venta_public_recomanat.ToString().Replace(",", ".");
-                        Cmd.Parameters.Add("@P_Fraccio", OleDbType.Decimal).Value = curr_prod.preu_de_fraccio.ToString().Replace(",", ".");
+                        Cmd.Parameters.Add("@P_Cost", OleDbType.Double).Value = curr_prod.preu_unitari;
+                        Cmd.Parameters.Add("@P_Recomanat", OleDbType.Double).Value = curr_prod.preu_venta_public_recomanat;
+                        Cmd.Parameters.Add("@P_Fraccio", OleDbType.Double).Value = curr_prod.preu_de_fraccio;
                         Cmd.Parameters.Add("@Iva", OleDbType.VarChar, 1).Value = curr_prod.tipus_iva;
                         Cmd.Parameters.Add("@Familia", OleDbType.VarChar, 2).Value = curr_prod.codi_familia;
                         Cmd.Parameters.Add("@SubFamilia", OleDbType.VarChar, 2).Value = curr_prod.codi_sub_familia;
@@ -327,13 +232,13 @@ namespace SUMA.Managers
                         Cmd.Parameters.Add("@UC", OleDbType.Integer).Value = curr_prod.unitats_caixa;
                         Cmd.Parameters.Add("@Data", OleDbType.Date).Value = data_actual;
 
-                        ret = ExecuteQuery(Cmd);
+                        ret = Managers.DBManager.Instance.ExecuteQuery(connection, Cmd);
 
                         if (!ret)
                             break;
                     }
 
-                    CloseConexion();
+                    Managers.DBManager.Instance.CloseConexion(connection);
 
                 }
             }
@@ -346,20 +251,7 @@ namespace SUMA.Managers
 
             if (connection != null)
             {
-                OpenConexion();
-
-                //var s = ean.GroupBy(a => a.codi_ean);
-
-                //int co = 0;
-                //foreach(var p in s)
-                //{
-                //    if (p.Count() > 1)
-                //    {
-                //        int a = 0;
-                //    }
-
-                //    ++co;
-                //}
+                Managers.DBManager.Instance.OpenConexion(connection);
 
                 for (int i = 0; i < ean.Count; ++i)
                 {
@@ -384,14 +276,13 @@ namespace SUMA.Managers
                     Cmd.Parameters.Add("@Codi", OleDbType.VarChar, 6).Value = curr_ean.codi_article;
                     Cmd.Parameters.Add("@Barres", OleDbType.VarChar, 13).Value = curr_ean.codi_ean;
 
-                    ret = ExecuteQuery(Cmd);
+                    ret = Managers.DBManager.Instance.ExecuteQuery(connection, Cmd);
 
                     if (!ret)
                         break;
                 }
 
-                CloseConexion();
-
+                Managers.DBManager.Instance.CloseConexion(connection);
             }
 
             return ret;

@@ -30,29 +30,27 @@ namespace SUMA.Managers
 
             if (line[cursor_pos] == 'L')
             {
-                Producte prod = f.NewProducte();
+                Producte prod = new Producte();
+
                 ParseArticle(line, cursor_pos, ref prod);
+
+                f.productes.Add(prod);
             }
 
             if (line[cursor_pos] == 'E')
-            {
-                Producte prod = f.GetProducte();
+            {                
+                CodiEan curr_ean = new CodiEan();
 
-                if (prod != null)
-                {
-                    CodiEan curr_ean = new CodiEan();
+                ParseCodiEan(line, cursor_pos, ref curr_ean);
 
-                    ParseCodiEan(line, cursor_pos, ref curr_ean);
-
-                    prod.codis_ean.Add(curr_ean);
-                    f.eans.Add(curr_ean);
-                }
+                f.eans.Add(curr_ean);
             }
 
             if (line[cursor_pos] == 'F')
             {
-                f.NewProducte();
                 ParseFinalFitxer(line, cursor_pos);
+
+                f.MakeEanProducteRelations();
             }
         }
 

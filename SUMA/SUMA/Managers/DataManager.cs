@@ -30,24 +30,7 @@ namespace SUMA.Managers
 
     public class Fitxer
     {
-        public Producte NewProducte()
-        {
-            if (curr_prod != null)
-            {
-                productes.Add(curr_prod);
-                curr_prod = null;
-            }
-
-            curr_prod = new Producte();
-            return curr_prod;
-        }
-
-        public Producte GetProducte()
-        {
-            return curr_prod;
-        }
-
-        public void MakeEanProducteRelations()
+         public void MakeEanProducteRelations()
         {
             for(int i = 0; i < productes.Count; ++i)
             {

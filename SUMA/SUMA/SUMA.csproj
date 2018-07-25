@@ -65,6 +65,8 @@
       <DependentUpon>DataSetSuma.xsd</DependentUpon>
     </Compile>
     <Compile Include="Managers\DataManager.cs" />
+    <Compile Include="Managers\DBManager.cs" />
+    <Compile Include="Managers\FactuSolDBManager.cs" />
     <Compile Include="Managers\FileSystemManager.cs" />
     <Compile Include="Managers\LocalDBManager.cs" />
     <Compile Include="Managers\ParserManager.cs" />

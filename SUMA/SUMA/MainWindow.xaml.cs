@@ -14,6 +14,9 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 using System.Data.OleDb;
+using System.Data.Linq;
+using System.Xml.Linq;
+
 namespace SUMA
 {
     /// <summary>
@@ -30,7 +33,7 @@ namespace SUMA
             LoadInfoText.Visibility = Visibility.Hidden;
             DataImpLabel.Visibility = Visibility.Hidden;
 
-            Managers.LocalDBManager.Instance.SetDataBasePath("C:\\Users\\usuari\\Documents\\GitHub\\SUMA\\DataTest\\ArticlesMAGSA.accdb");
+            LoadConfigData();
 
             if(Managers.LocalDBManager.Instance.LoadDataBase())
             {
@@ -40,6 +43,28 @@ namespace SUMA
             {
                 System.Environment.Exit(1);
             }
+        }
+
+        private void LoadConfigData()
+        {
+            XDocument config = Managers.FileSystemManager.Instance.LoadConfigXML();
+
+            string local_server_path = "";
+            string factu_sol_server_path = "";
+
+            if (config != null)
+            {
+                List<XElement> servidors_el = config.Element("configuration").Elements("servers").ToList();
+
+                if (servidors_el.Count > 1)
+                {
+                    local_server_path = servidors_el[0].Attribute("local").Value;
+                    factu_sol_server_path = servidors_el[1].Attribute("factu_sol").Value;
+                }
+            }
+
+            Managers.LocalDBManager.Instance.SetDataBasePath(local_server_path);
+            Managers.FactuSolDBManager.Instance.SetDataBasePath(factu_sol_server_path);
         }
 
         private void LookForFileButton_Click(object sender, RoutedEventArgs e)
@@ -103,12 +128,12 @@ namespace SUMA
             LoadInfoText.Visibility = Visibility.Hidden;
         }
 
-        private void ArticlesDatGrid_PreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+        private void ArticlesDatGrid_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            DataGrid item = sender as DataGrid;
-            if (item.SelectedItem != null && item.SelectedIndex >= 0)
+            if (ArticlesDatGrid.SelectedItems != null && ArticlesDatGrid.SelectedItems.Count > 0)
             {
-                CarregaEansDataGrid((Managers.Producte)item.SelectedItem);
+                List<Managers.Producte> selected = ArticlesDatGrid.SelectedItems.OfType<Managers.Producte>().ToList();
+                CarregaEansDataGrid(selected);
             }
         }
 
@@ -125,6 +150,9 @@ namespace SUMA
                     UrlText.Text = fit.nom;
 
                 ArticlesDatGrid.Columns.Clear();
+                ArticlesDatGrid.Items.Clear();
+
+                ArticlesDatGrid.IsReadOnly = true;
 
                 DataGridTextColumn columnaCodiArt = new DataGridTextColumn();
                 columnaCodiArt.Header = "Codi Art";
@@ -210,24 +238,18 @@ namespace SUMA
                 factorConversio.IsReadOnly = true;
                 ArticlesDatGrid.Columns.Add(factorConversio);
 
-                ArticlesDatGrid.ItemsSource = productes;
-                ArticlesDatGrid.IsReadOnly = true;
-
-                for (int i = 0; i < ArticlesDatGrid.Columns.Count;)
-                {
-                    if (i >= 14)
-                        ArticlesDatGrid.Columns.RemoveAt(i);
-                    else
-                        ++i;
-                }
+                for(int i = 0; i < productes.Count; ++i)
+                    ArticlesDatGrid.Items.Add(productes[i]);
+                
             }
         }
 
-        private void CarregaEansDataGrid(Managers.Producte prod)
+        private void CarregaEansDataGrid(List<Managers.Producte> prods)
         {
-            if(prod != null)
+            if(prods != null)
             {
                 EansDatGrid.Columns.Clear();
+                EansDatGrid.Items.Clear();
 
                 DataGridTextColumn columnaCodiArt = new DataGridTextColumn();
                 columnaCodiArt.Header = "Codi Art";
@@ -241,16 +263,10 @@ namespace SUMA
                 columnaCodiEan.IsReadOnly = true;
                 EansDatGrid.Columns.Add(columnaCodiEan);
 
-                EansDatGrid.ItemsSource = prod.codis_ean;
                 EansDatGrid.IsReadOnly = true;
 
-                for (int i = 0; i < EansDatGrid.Columns.Count;)
-                {
-                    if (i >= 2)
-                        EansDatGrid.Columns.RemoveAt(i);
-                    else
-                        ++i;
-                }
+                for (int i = 0; i < prods.Count; ++i)
+                    EansDatGrid.Items.Add(prods[i].codis_ean);
             }
         }
 
@@ -261,15 +277,17 @@ namespace SUMA
 
         private void ImportArticlesButton_Click(object sender, RoutedEventArgs e)
         {
-            /*OleDbCommand Cmd = new OleDbCommand("SELECT * FROM ArticlesMagsa", conexio);
-            OleDbDataReader ObjReader = Cmd.ExecuteReader();
-            EansDatGrid.DataContext = ObjReader;
-            int items  = EansDatGrid.Items.Count;*/
+            if (ArticlesDatGrid.SelectedItems != null && ArticlesDatGrid.SelectedItems.Count > 0)
+            {
+                List<Managers.Producte> selected = ArticlesDatGrid.SelectedItems.OfType<Managers.Producte>().ToList();
+                Managers.FactuSolDBManager.Instance.AddProductes(selected);
+            }
         }
 
         private void CercaButton_Click(object sender, RoutedEventArgs e)
         {
             Managers.Fitxer fit = Managers.DataManager.Instance.GetFitxer();
+
             List<Managers.Producte> prods = fit.productes.Where(f => FormatForSearch(f.descripcio)
             .Contains(FormatForSearch(BuscadorTextBox.Text)) || FormatForSearch(f.codi_article.ToString())
             .Contains(FormatForSearch(BuscadorTextBox.Text))).ToList();
