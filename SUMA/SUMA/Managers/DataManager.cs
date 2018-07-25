@@ -81,6 +81,8 @@ namespace SUMA.Managers
             return ret;
         }
 
+        public string nom { get; set; }
+
         public FitxerTipusMoneda tipus_moneda;
         public DateTime data_creacio;
         public DateTime data_importacio;

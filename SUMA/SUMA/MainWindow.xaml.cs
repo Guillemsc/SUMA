@@ -48,11 +48,9 @@ namespace SUMA
 
             if (file_path != "")
             {
-                UrlText.Text = file_path;
-
                 string[] text = Managers.FileSystemManager.Instance.GetFileDataText(file_path);
 
-                Managers.ParserManager.Instance.ParseAsync(text, OnParseTick, OnParseFinish);
+                Managers.ParserManager.Instance.ParseAsync(System.IO.Path.GetFileName(file_path), text, OnParseTick, OnParseFinish);
 
                 LoadInfoText.Visibility = Visibility.Visible;
                 LoadInfoText.Content = "Recuperant informació del .txt...";
@@ -89,8 +87,11 @@ namespace SUMA
 
             if(correct)
             {
-                DataImpLabel.Content = "Data importació: " + fit.data_importacio.ToString();
+                correct = Managers.LocalDBManager.Instance.AddRegistre(fit);
+            }
 
+            if(correct)
+            {
                 CarregaArticlesDataGrid(fit.productes);
             }
 
@@ -113,101 +114,112 @@ namespace SUMA
 
         private void CarregaArticlesDataGrid(List<Managers.Producte> productes)
         {
-            ArticlesDatGrid.Columns.Clear();
+            Managers.Fitxer fit = Managers.DataManager.Instance.GetFitxer();
 
-            DataGridTextColumn columnaCodiArt = new DataGridTextColumn();
-            columnaCodiArt.Header = "Codi Art";
-            columnaCodiArt.Binding = new Binding("codi_article");
-            columnaCodiArt.IsReadOnly = true;
-            ArticlesDatGrid.Columns.Add(columnaCodiArt);
-
-            DataGridTextColumn columnaProveedor = new DataGridTextColumn();
-            columnaProveedor.Header = "Descripcio";
-            columnaProveedor.Binding = new Binding("descripcio");
-            columnaProveedor.IsReadOnly = true;
-            ArticlesDatGrid.Columns.Add(columnaProveedor);
-
-            DataGridTextColumn columnaMarcaDeBaixa = new DataGridTextColumn();
-            columnaMarcaDeBaixa.Header = "Marca Baixa";
-            columnaMarcaDeBaixa.Binding = new Binding("marca_de_baixa_str");
-            columnaMarcaDeBaixa.IsReadOnly = true;
-            ArticlesDatGrid.Columns.Add(columnaMarcaDeBaixa);
-
-            DataGridTextColumn columnaUnitatsCaixa = new DataGridTextColumn();
-            columnaUnitatsCaixa.Header = "Unitats/Caixa";
-            columnaUnitatsCaixa.Binding = new Binding("unitats_caixa");
-            columnaUnitatsCaixa.IsReadOnly = true;
-            ArticlesDatGrid.Columns.Add(columnaUnitatsCaixa);
-
-            DataGridTextColumn columnaUnitatsFraccio = new DataGridTextColumn();
-            columnaUnitatsFraccio.Header = "Unitats/Fraccio";
-            columnaUnitatsFraccio.Binding = new Binding("unitats_fraccio");
-            columnaUnitatsFraccio.IsReadOnly = true;
-            ArticlesDatGrid.Columns.Add(columnaUnitatsFraccio);
-
-            DataGridTextColumn columnaMarcaPes = new DataGridTextColumn();
-            columnaMarcaPes.Header = "Marca de Pes";
-            columnaMarcaPes.Binding = new Binding("marca_de_pes_str");
-            columnaMarcaPes.IsReadOnly = true;
-            ArticlesDatGrid.Columns.Add(columnaMarcaPes);
-
-            DataGridTextColumn preuUnitari = new DataGridTextColumn();
-            preuUnitari.Header = "Preu Unitari";
-            preuUnitari.Binding = new Binding("preu_unitari");
-            preuUnitari.IsReadOnly = true;
-            ArticlesDatGrid.Columns.Add(preuUnitari);
-
-            DataGridTextColumn preuVendaPublic = new DataGridTextColumn();
-            preuVendaPublic.Header = "Preu Venda Publ Rec";
-            preuVendaPublic.Binding = new Binding("preu_venta_public_recomanat");
-            preuVendaPublic.IsReadOnly = true;
-            ArticlesDatGrid.Columns.Add(preuVendaPublic);
-
-            DataGridTextColumn preuFraccio = new DataGridTextColumn();
-            preuFraccio.Header = "Preu Fracció";
-            preuFraccio.Binding = new Binding("preu_de_fraccio");
-            preuFraccio.IsReadOnly = true;
-            ArticlesDatGrid.Columns.Add(preuFraccio);
-
-            DataGridTextColumn tipusIva = new DataGridTextColumn();
-            tipusIva.Header = "Tipus IVA";
-            tipusIva.Binding = new Binding("tipus_iva");
-            tipusIva.IsReadOnly = true;
-            ArticlesDatGrid.Columns.Add(tipusIva);
-
-            DataGridTextColumn codiFamilia= new DataGridTextColumn();
-            codiFamilia.Header = "Codi Familia";
-            codiFamilia.Binding = new Binding("codi_familia");
-            codiFamilia.IsReadOnly = true;
-            ArticlesDatGrid.Columns.Add(codiFamilia);
-
-            DataGridTextColumn codiSubFamilia = new DataGridTextColumn();
-            codiSubFamilia.Header = "Codi Sub Familia";
-            codiSubFamilia.Binding = new Binding("codi_sub_familia");
-            codiSubFamilia.IsReadOnly = true;
-            ArticlesDatGrid.Columns.Add(codiSubFamilia);
-
-            DataGridTextColumn unitatsMesura = new DataGridTextColumn();
-            unitatsMesura.Header = "Unitats Mesura";
-            unitatsMesura.Binding = new Binding("unitats_mesura");
-            unitatsMesura.IsReadOnly = true;
-            ArticlesDatGrid.Columns.Add(unitatsMesura);
-
-            DataGridTextColumn factorConversio = new DataGridTextColumn();
-            factorConversio.Header = "Factor Conversió";
-            factorConversio.Binding = new Binding("factor_de_conversio");
-            factorConversio.IsReadOnly = true;
-            ArticlesDatGrid.Columns.Add(factorConversio);
-
-            ArticlesDatGrid.ItemsSource = productes;
-            ArticlesDatGrid.IsReadOnly = true;
-
-            for(int i = 0; i < ArticlesDatGrid.Columns.Count;)
+            if (fit != null)
             {
-                if (i >= 14)
-                    ArticlesDatGrid.Columns.RemoveAt(i);
-                else
-                    ++i;
+                DataImpLabel.Content = "Data importació: " + fit.data_importacio.ToString();
+                DataImpLabel.Visibility = Visibility.Visible;
+
+                if (fit != null)
+                    UrlText.Text = fit.nom;
+
+                ArticlesDatGrid.Columns.Clear();
+
+                DataGridTextColumn columnaCodiArt = new DataGridTextColumn();
+                columnaCodiArt.Header = "Codi Art";
+                columnaCodiArt.Binding = new Binding("codi_article");
+                columnaCodiArt.IsReadOnly = true;
+                ArticlesDatGrid.Columns.Add(columnaCodiArt);
+
+                DataGridTextColumn columnaProveedor = new DataGridTextColumn();
+                columnaProveedor.Header = "Descripcio";
+                columnaProveedor.Binding = new Binding("descripcio");
+                columnaProveedor.IsReadOnly = true;
+                ArticlesDatGrid.Columns.Add(columnaProveedor);
+
+                DataGridTextColumn columnaMarcaDeBaixa = new DataGridTextColumn();
+                columnaMarcaDeBaixa.Header = "Marca Baixa";
+                columnaMarcaDeBaixa.Binding = new Binding("marca_de_baixa_str");
+                columnaMarcaDeBaixa.IsReadOnly = true;
+                ArticlesDatGrid.Columns.Add(columnaMarcaDeBaixa);
+
+                DataGridTextColumn columnaUnitatsCaixa = new DataGridTextColumn();
+                columnaUnitatsCaixa.Header = "Unitats/Caixa";
+                columnaUnitatsCaixa.Binding = new Binding("unitats_caixa");
+                columnaUnitatsCaixa.IsReadOnly = true;
+                ArticlesDatGrid.Columns.Add(columnaUnitatsCaixa);
+
+                DataGridTextColumn columnaUnitatsFraccio = new DataGridTextColumn();
+                columnaUnitatsFraccio.Header = "Unitats/Fraccio";
+                columnaUnitatsFraccio.Binding = new Binding("unitats_fraccio");
+                columnaUnitatsFraccio.IsReadOnly = true;
+                ArticlesDatGrid.Columns.Add(columnaUnitatsFraccio);
+
+                DataGridTextColumn columnaMarcaPes = new DataGridTextColumn();
+                columnaMarcaPes.Header = "Marca de Pes";
+                columnaMarcaPes.Binding = new Binding("marca_de_pes_str");
+                columnaMarcaPes.IsReadOnly = true;
+                ArticlesDatGrid.Columns.Add(columnaMarcaPes);
+
+                DataGridTextColumn preuUnitari = new DataGridTextColumn();
+                preuUnitari.Header = "Preu Unitari";
+                preuUnitari.Binding = new Binding("preu_unitari");
+                preuUnitari.IsReadOnly = true;
+                ArticlesDatGrid.Columns.Add(preuUnitari);
+
+                DataGridTextColumn preuVendaPublic = new DataGridTextColumn();
+                preuVendaPublic.Header = "Preu Venda Publ Rec";
+                preuVendaPublic.Binding = new Binding("preu_venta_public_recomanat");
+                preuVendaPublic.IsReadOnly = true;
+                ArticlesDatGrid.Columns.Add(preuVendaPublic);
+
+                DataGridTextColumn preuFraccio = new DataGridTextColumn();
+                preuFraccio.Header = "Preu Fracció";
+                preuFraccio.Binding = new Binding("preu_de_fraccio");
+                preuFraccio.IsReadOnly = true;
+                ArticlesDatGrid.Columns.Add(preuFraccio);
+
+                DataGridTextColumn tipusIva = new DataGridTextColumn();
+                tipusIva.Header = "Tipus IVA";
+                tipusIva.Binding = new Binding("tipus_iva");
+                tipusIva.IsReadOnly = true;
+                ArticlesDatGrid.Columns.Add(tipusIva);
+
+                DataGridTextColumn codiFamilia = new DataGridTextColumn();
+                codiFamilia.Header = "Codi Familia";
+                codiFamilia.Binding = new Binding("codi_familia");
+                codiFamilia.IsReadOnly = true;
+                ArticlesDatGrid.Columns.Add(codiFamilia);
+
+                DataGridTextColumn codiSubFamilia = new DataGridTextColumn();
+                codiSubFamilia.Header = "Codi Sub Familia";
+                codiSubFamilia.Binding = new Binding("codi_sub_familia");
+                codiSubFamilia.IsReadOnly = true;
+                ArticlesDatGrid.Columns.Add(codiSubFamilia);
+
+                DataGridTextColumn unitatsMesura = new DataGridTextColumn();
+                unitatsMesura.Header = "Unitats Mesura";
+                unitatsMesura.Binding = new Binding("unitats_mesura");
+                unitatsMesura.IsReadOnly = true;
+                ArticlesDatGrid.Columns.Add(unitatsMesura);
+
+                DataGridTextColumn factorConversio = new DataGridTextColumn();
+                factorConversio.Header = "Factor Conversió";
+                factorConversio.Binding = new Binding("factor_de_conversio");
+                factorConversio.IsReadOnly = true;
+                ArticlesDatGrid.Columns.Add(factorConversio);
+
+                ArticlesDatGrid.ItemsSource = productes;
+                ArticlesDatGrid.IsReadOnly = true;
+
+                for (int i = 0; i < ArticlesDatGrid.Columns.Count;)
+                {
+                    if (i >= 14)
+                        ArticlesDatGrid.Columns.RemoveAt(i);
+                    else
+                        ++i;
+                }
             }
         }
 

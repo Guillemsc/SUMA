@@ -61,11 +61,12 @@ namespace SUMA.Managers
         ParseFinished finish_callback = null;
         string[] async_text_lines;
         int curr_text_line = 0;
-        public void ParseAsync(string[] text_lines, ParseProcessTick progress_call = null, ParseFinished finish_call = null)
+        public void ParseAsync(string file_name, string[] text_lines, ParseProcessTick progress_call = null, ParseFinished finish_call = null)
         {
             if(!parsing)
             {
-                DataManager.Instance.NewFitxer();
+                Fitxer f = DataManager.Instance.NewFitxer();
+                f.nom = file_name;
 
                 async_text_lines = text_lines;
                 curr_text_line = 0;
