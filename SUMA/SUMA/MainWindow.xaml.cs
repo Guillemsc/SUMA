@@ -72,6 +72,8 @@ namespace SUMA
 
             if (file_path != "")
             {
+                StartAsyncProcess();
+
                 string[] text = Managers.FileSystemManager.Instance.GetFileDataText(file_path);
 
                 Managers.ParserManager.Instance.ParseAsync(System.IO.Path.GetFileName(file_path), text, OnParseTick, OnParseFinish);
@@ -85,6 +87,7 @@ namespace SUMA
         {
             ParseProgressBar.Visibility = Visibility.Visible;
             ParseProgressBar.Value = progress;
+            LoadInfoText.Content = "Recuperant informació del .txt... (" + progress + "%)";
         }
 
         private void OnParseFinish()
@@ -99,14 +102,13 @@ namespace SUMA
 
             if (correct)
             {
-                LoadInfoText.Content = "Escrivint a la base de dades...";
-
-                correct = Managers.LocalDBManager.Instance.AddProductes(fit.productes);
+                Managers.LocalDBManager.Instance.AddProductesAndEansAsync(fit.productes, fit.eans, 
+                    OnLocalProductesAndEansAddTick, OnLocalProductesAndEansAddFinish);
             }
 
             if(correct)
             {
-                correct = Managers.LocalDBManager.Instance.AddEans(fit.eans);
+                //correct = Managers.LocalDBManager.Instance.AddEans(fit.eans);
             }
 
             if(correct)
@@ -125,6 +127,22 @@ namespace SUMA
             }
 
             LoadInfoText.Visibility = Visibility.Hidden;
+        }
+
+        private void OnLocalProductesAndEansAddTick(float progress)
+        {
+            ParseProgressBar.Visibility = Visibility.Visible;
+            ParseProgressBar.Value = progress;
+            LoadInfoText.Visibility = Visibility.Visible;
+            LoadInfoText.Content = "Escrivint a la base de dades local... (" + progress + "%)";
+        }
+
+        private void OnLocalProductesAndEansAddFinish()
+        {
+            LoadInfoText.Visibility = Visibility.Hidden;
+            ParseProgressBar.Visibility = Visibility.Hidden;
+
+            FinishAsyncProcess();
         }
 
         private void ArticlesDatGrid_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -274,6 +292,8 @@ namespace SUMA
         {
             if (ArticlesDatGrid.SelectedItems != null && ArticlesDatGrid.SelectedItems.Count > 0)
             {
+                StartAsyncProcess();
+
                 List<Managers.Producte> selected = ArticlesDatGrid.SelectedItems.OfType<Managers.Producte>().ToList();
 
                 Managers.FactuSolDBManager.Instance.AddEansAsync(selected, OnFactuSolEanAddTick, OnFactuSolEanFinish);
@@ -284,6 +304,8 @@ namespace SUMA
         {
             if (ArticlesDatGrid.SelectedItems != null && ArticlesDatGrid.SelectedItems.Count > 0)
             {
+                StartAsyncProcess();
+
                 List<Managers.Producte> selected = ArticlesDatGrid.SelectedItems.OfType<Managers.Producte>().ToList();
                 Managers.FactuSolDBManager.Instance.AddProductesAsync(selected, OnFactuSolProducteAddTick, OnFactuSolProductesAddFinish, 
                     OnFactuSolEanAddTick, OnFactuSolEanFinish);
@@ -301,6 +323,7 @@ namespace SUMA
         private void OnFactuSolProductesAddFinish()
         {
             LoadInfoText.Visibility = Visibility.Hidden;
+            ParseProgressBar.Visibility = Visibility.Hidden;
         }
 
         private void OnFactuSolEanAddTick(float progress)
@@ -314,6 +337,9 @@ namespace SUMA
         private void OnFactuSolEanFinish()
         {
             LoadInfoText.Visibility = Visibility.Hidden;
+            ParseProgressBar.Visibility = Visibility.Hidden;
+
+            FinishAsyncProcess();
         }
 
         private void CercaButton_Click(object sender, RoutedEventArgs e)
@@ -339,6 +365,38 @@ namespace SUMA
             Managers.Fitxer fit = Managers.DataManager.Instance.GetFitxer();
 
             CarregaArticlesDataGrid(fit.productes);
+        }
+
+        private bool async_process = false;
+        private void StartAsyncProcess()
+        {
+            async_process = true;
+            ImportArticlesButton.IsEnabled = false;
+            ImportEansButton.IsEnabled = false;
+            LookForFileButton.IsEnabled = false;
+        }
+
+        private void FinishAsyncProcess()
+        {
+            async_process = false;
+            ImportArticlesButton.IsEnabled = true;
+            ImportEansButton.IsEnabled = true;
+            LookForFileButton.IsEnabled = true;
+        }
+
+        private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
+        {
+            if(async_process)
+            {
+                string message = "Hi ha un process actiu, estas segur que vols tancar el programa? Tancar el programa" +
+                    " pot finalitzar el process amb errors";
+                MessageBoxResult messageBoxResult = System.Windows.MessageBox.Show(string.Format(message), "Èxit", System.Windows.MessageBoxButton.YesNo, System.Windows.MessageBoxImage.Warning);
+
+                if (messageBoxResult == MessageBoxResult.No)
+                {
+                    e.Cancel = true;
+                }
+            }
         }
     }
 }

@@ -9,6 +9,11 @@ using System.Windows;
 
 namespace SUMA.Managers
 {
+    delegate void ProductAddProcessTick(float progress);
+    delegate void ProductAddFinished();
+    delegate void EanAddProcessTick(float progress);
+    delegate void EanAddFinished();
+
     class FactuSolDBManager : Singleton<FactuSolDBManager>
     {
         private string connection_string = "";
@@ -224,8 +229,6 @@ namespace SUMA.Managers
 
             }
 
-            Managers.DBManager.Instance.CloseConexion(connection);
-
             return ret;
         }
 
@@ -261,7 +264,7 @@ namespace SUMA.Managers
                 product_succes_msg = succes_message;
                 add_productes_timer = new System.Windows.Forms.Timer();
                 add_productes_timer.Tick += new EventHandler(AddProductesAsyncTimeStep);
-                add_productes_timer.Interval = 100; // in miliseconds
+                add_productes_timer.Interval = 5; // in miliseconds
                 add_productes_timer.Start();
 
                 adding_productes = true;
@@ -272,7 +275,7 @@ namespace SUMA.Managers
         {
             if (adding_productes)
             {
-                for (int i = 0; i < 1; ++i)
+                for (int i = 0; i < 13; ++i)
                 {
                     if (curr_prod < prods_to_add.Count)
                     {
@@ -284,13 +287,15 @@ namespace SUMA.Managers
                     }
                     else
                     {
-                        if (on_product_add_finished != null)
-                            on_product_add_finished();
-
                         adding_productes = false;
                         add_productes_timer.Stop();
 
+                        if (on_product_add_finished != null)
+                            on_product_add_finished();
+
                         AddEansAsync(prods_to_add, on_product_ean_add_tick, on_product_ean_add_finished, false);
+
+                        Managers.DBManager.Instance.CloseConexion(connection);
 
                         break;
                     }
@@ -304,6 +309,8 @@ namespace SUMA.Managers
             {
                 string message = "Introducció de Productes finalitzada amb èxit";
                 MessageBoxResult messageBoxResult = System.Windows.MessageBox.Show(string.Format(message), "Èxit", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Information);
+
+                on_product_ean_add_finished -= ProductEanAddFinished;
             }
         }
 
@@ -344,7 +351,7 @@ namespace SUMA.Managers
                 ean_succes_msg = succes_message;
                 add_eans_timer = new System.Windows.Forms.Timer();
                 add_eans_timer.Tick += new EventHandler(AddEansAsyncTimeStep);
-                add_eans_timer.Interval = 100; // in miliseconds
+                add_eans_timer.Interval = 5; // in miliseconds
                 add_eans_timer.Start();
 
                 adding_eans = true;
@@ -355,7 +362,7 @@ namespace SUMA.Managers
         {
             if (adding_eans)
             {
-                for (int i = 0; i < 1; ++i)
+                for (int i = 0; i < 13; ++i)
                 {
                     if (curr_prod_ean < eans_to_add.Count)
                     {
@@ -378,13 +385,15 @@ namespace SUMA.Managers
                     }
                     else
                     {
-                        if (on_ean_add_finished != null)
-                            on_ean_add_finished();
-
                         adding_eans = false;
                         add_eans_timer.Stop();
 
-                        if(ean_succes_msg)
+                        if (on_ean_add_finished != null)
+                            on_ean_add_finished();
+
+                        Managers.DBManager.Instance.CloseConexion(connection);
+
+                        if (ean_succes_msg)
                         {
                             string message = "Introducció de Eans finalitzada amb èxit";
                             MessageBoxResult messageBoxResult = System.Windows.MessageBox.Show(string.Format(message), "Èxit", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Information);
