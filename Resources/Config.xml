@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 
 <configuration>
-	<servers local = "C:\Users\usuari\Documents\GitHub\SUMA\DataTest\ArticlesMAGSA.accdb"/>
-	<servers factu_sol = "empty"/>
+	<servers local_name = "ArticlesMAGSA.accdb"/>
+	<servers factu_sol_path = "C:\Users\usuari\Documents\GitHub\SUMA\DataTest\0092017.accdb"/>
 </configuration>

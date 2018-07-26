@@ -12,7 +12,7 @@ namespace SUMA.Managers
     {
         public string LoadFileDialog(string extension)
         {
-            string ret = null;
+            string ret = "no_file";
 
             System.Windows.Forms.OpenFileDialog dialog = new System.Windows.Forms.OpenFileDialog();
             dialog.Filter = extension + " files (*. " + extension + ")|*." + extension;
@@ -35,9 +35,17 @@ namespace SUMA.Managers
             return ret;
         }
 
-        public XDocument LoadConfigXML()
+        public XDocument LoadConfigXML(out bool found)
         {
-            return XDocument.Load(AppDomain.CurrentDomain.BaseDirectory + "Config.xml");
+            found = false;
+
+            if(File.Exists(AppDomain.CurrentDomain.BaseDirectory + "Config.xml"))
+            {
+                found = true;
+                return XDocument.Load(AppDomain.CurrentDomain.BaseDirectory + "Config.xml");
+            }
+
+            return null;
         }
     }
 }

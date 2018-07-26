@@ -33,6 +33,9 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
+  <PropertyGroup>
+    <ApplicationIcon>Images\icon.ico</ApplicationIcon>
+  </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
     <Reference Include="System.Data" />
@@ -56,14 +59,6 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
-    <Compile Include="DataSetSuma.cs">
-      <DependentUpon>DataSetSuma.xsd</DependentUpon>
-    </Compile>
-    <Compile Include="DataSetSuma.Designer.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>DataSetSuma.xsd</DependentUpon>
-    </Compile>
     <Compile Include="Managers\DataManager.cs" />
     <Compile Include="Managers\DBManager.cs" />
     <Compile Include="Managers\FactuSolDBManager.cs" />
@@ -103,17 +98,6 @@
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
     <None Include="app.config" />
-    <None Include="DataSetSuma.xsc">
-      <DependentUpon>DataSetSuma.xsd</DependentUpon>
-    </None>
-    <None Include="DataSetSuma.xsd">
-      <SubType>Designer</SubType>
-      <Generator>MSDataSetGenerator</Generator>
-      <LastGenOutput>DataSetSuma.Designer.cs</LastGenOutput>
-    </None>
-    <None Include="DataSetSuma.xss">
-      <DependentUpon>DataSetSuma.xsd</DependentUpon>
-    </None>
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>
@@ -126,10 +110,10 @@
     <Folder Include="Forms\" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="ArticlesMAGSA.accdb">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
     <Resource Include="Images\icon.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Images\icon.ico" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

@@ -299,6 +299,7 @@ namespace SUMA.Managers
                         {
                             adding_productes = false;
                             add_productes_timer.Stop();
+                            on_product_ean_add_finished -= ProductEanAddFinished;
 
                             if (on_product_add_finished != null)
                                 on_product_add_finished();
@@ -315,6 +316,7 @@ namespace SUMA.Managers
                     {
                         adding_productes = false;
                         add_productes_timer.Stop();
+                        on_product_ean_add_finished -= ProductEanAddFinished;
 
                         if (on_product_add_finished != null)
                             on_product_add_finished();

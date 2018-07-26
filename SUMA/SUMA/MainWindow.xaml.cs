@@ -46,40 +46,50 @@ namespace SUMA
 
         private void LoadConfigData()
         {
-            XDocument config = Managers.FileSystemManager.Instance.LoadConfigXML();
+            bool exists = true;
+            XDocument config = Managers.FileSystemManager.Instance.LoadConfigXML(out exists);
 
-            string local_server_path = "";
-            string factu_sol_server_path = "";
-
-            if (config != null)
+            if (exists)
             {
-                List<XElement> servidors_el = config.Element("configuration").Elements("servers").ToList();
+                string local_server_path = "";
+                string factu_sol_server_path = "";
 
-                if (servidors_el.Count > 1)
+                if (config != null)
                 {
-                    local_server_path = servidors_el[0].Attribute("local").Value;
-                    factu_sol_server_path = servidors_el[1].Attribute("factu_sol").Value;
-                }
-            }
+                    List<XElement> servidors_el = config.Element("configuration").Elements("servers").ToList();
 
-            Managers.LocalDBManager.Instance.SetDataBasePath(local_server_path);
-            Managers.FactuSolDBManager.Instance.SetDataBasePath(factu_sol_server_path);
+                    if (servidors_el.Count > 1)
+                    {
+                        string local_name = servidors_el[0].Attribute("local_name").Value;
+                        local_server_path = AppDomain.CurrentDomain.BaseDirectory + local_name;
+
+                        factu_sol_server_path = servidors_el[1].Attribute("factu_sol_path").Value;
+                    }
+                }
+
+                Managers.LocalDBManager.Instance.SetDataBasePath(local_server_path);
+                Managers.FactuSolDBManager.Instance.SetDataBasePath(factu_sol_server_path);
+            }
+            else
+            {
+                string message = "No s'ha pogut trobar l'arxiu 'Config.xml'";
+                MessageBoxResult messageBoxResult = System.Windows.MessageBox.Show(string.Format(message), "Error", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Error);
+
+                Application.Current.Shutdown();
+            }
         }
 
         private void LookForFileButton_Click(object sender, RoutedEventArgs e)
         {
             string file_path = Managers.FileSystemManager.Instance.LoadFileDialog("txt");
 
-            if (file_path != "")
+            if (file_path != "no_file" && File.Exists(file_path))
             {
                 StartAsyncProcess();
 
                 string[] text = Managers.FileSystemManager.Instance.GetFileDataText(file_path);
 
                 Managers.ParserManager.Instance.ParseAsync(System.IO.Path.GetFileName(file_path), text, OnParseTick, OnParseFinish);
-
-                LoadInfoText.Visibility = Visibility.Visible;
-                LoadInfoText.Content = "Recuperant informació del .txt...";
             }
         }
 
@@ -87,6 +97,7 @@ namespace SUMA
         {
             ParseProgressBar.Visibility = Visibility.Visible;
             ParseProgressBar.Value = progress;
+            LoadInfoText.Visibility = Visibility.Visible;
             LoadInfoText.Content = "Recuperant informació del .txt... (" + progress + "%)";
         }
 
@@ -104,11 +115,6 @@ namespace SUMA
             {
                 Managers.LocalDBManager.Instance.AddProductesAndEansAsync(fit.productes, fit.eans, 
                     OnLocalProductesAndEansAddTick, OnLocalProductesAndEansAddFinish);
-            }
-
-            if(correct)
-            {
-                //correct = Managers.LocalDBManager.Instance.AddEans(fit.eans);
             }
 
             if(correct)
