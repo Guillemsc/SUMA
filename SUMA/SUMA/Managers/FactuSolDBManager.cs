@@ -56,13 +56,17 @@ namespace SUMA.Managers
                         add_productes_timer.Stop();
 
                         string message = "El producte amb codi: " + prod.codi_article + " ja esta a la base de dades, vol reemplacar-lo?";
-                        MessageBoxResult messageBoxResult = System.Windows.MessageBox.Show(string.Format(message), "Conflicte", System.Windows.MessageBoxButton.YesNo, System.Windows.MessageBoxImage.Warning);
+                        MessageBoxResult messageBoxResult = System.Windows.MessageBox.Show(string.Format(message), "Conflicte", System.Windows.MessageBoxButton.YesNoCancel, System.Windows.MessageBoxImage.Warning);
 
                         add_productes_timer.Start();
 
                         if (messageBoxResult == MessageBoxResult.Yes)
                         {
                             sobreescriure = true;
+                        }
+                        else if(messageBoxResult == MessageBoxResult.Cancel)
+                        {
+                            ret = false;
                         }
                     }
 
@@ -185,13 +189,17 @@ namespace SUMA.Managers
                     add_eans_timer.Stop();
 
                     string message = "El producte amb codi: " + prod.codi_article + " no està a la base de dades, vol incloure'l?";
-                    MessageBoxResult messageBoxResult = System.Windows.MessageBox.Show(string.Format(message), "Conflicte", System.Windows.MessageBoxButton.YesNo, System.Windows.MessageBoxImage.Warning);
+                    MessageBoxResult messageBoxResult = System.Windows.MessageBox.Show(string.Format(message), "Conflicte", System.Windows.MessageBoxButton.YesNoCancel, System.Windows.MessageBoxImage.Warning);
 
                     add_eans_timer.Start();
 
                     if (messageBoxResult == MessageBoxResult.Yes)
                     {
                         add_product = true;
+                    }
+                    else if (messageBoxResult == MessageBoxResult.Cancel)
+                    {
+                        ret = false;
                     }
                     else
                     {
@@ -277,13 +285,31 @@ namespace SUMA.Managers
             {
                 for (int i = 0; i < 13; ++i)
                 {
+                    bool succes = false;
+
                     if (curr_prod < prods_to_add.Count)
                     {
-                        AddProducte(prods_to_add[curr_prod]);
+                        succes = AddProducte(prods_to_add[curr_prod]);
                         ++curr_prod;
 
                         if (on_product_add_tick != null)
                             on_product_add_tick(GetProductAddProcess());
+
+                        if (!succes)
+                        {
+                            adding_productes = false;
+                            add_productes_timer.Stop();
+
+                            if (on_product_add_finished != null)
+                                on_product_add_finished();
+
+                            string message = "La introducció de Productes no s'ha pogut finalitzar";
+                            MessageBoxResult messageBoxResult = System.Windows.MessageBox.Show(string.Format(message), "Error", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Warning);
+
+                            Managers.DBManager.Instance.CloseConexion(connection);
+
+                            break;
+                        }
                     }
                     else
                     {
@@ -366,12 +392,29 @@ namespace SUMA.Managers
                 {
                     if (curr_prod_ean < eans_to_add.Count)
                     {
+                        bool succes = false;
                         if (eans_to_add[curr_prod_ean].codis_ean.Count > curr_ean)
                         {
                             if(!curr_product_not_added)
-                                AddEan(eans_to_add[curr_prod_ean], eans_to_add[curr_prod_ean].codis_ean[curr_ean], out curr_product_not_added);
+                                succes = AddEan(eans_to_add[curr_prod_ean], eans_to_add[curr_prod_ean].codis_ean[curr_ean], out curr_product_not_added);
 
                             ++curr_ean;
+
+                            if (!succes)
+                            {
+                                adding_eans = false;
+                                add_eans_timer.Stop();
+
+                                if (on_ean_add_finished != null)
+                                    on_ean_add_finished();
+
+                                Managers.DBManager.Instance.CloseConexion(connection);
+
+                                string message = "La introducció de Eans no s'ha pogut finalitzar";
+                                MessageBoxResult messageBoxResult = System.Windows.MessageBox.Show(string.Format(message), "Error", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Warning);
+
+                                break;
+                            }
                         }
                         else
                         {

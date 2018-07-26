@@ -314,6 +314,8 @@ namespace SUMA
 
         private void OnFactuSolProducteAddTick(float progress)
         {
+            StartAsyncProcess();
+
             ParseProgressBar.Visibility = Visibility.Visible;
             ParseProgressBar.Value = progress;
             LoadInfoText.Visibility = Visibility.Visible;
@@ -324,10 +326,14 @@ namespace SUMA
         {
             LoadInfoText.Visibility = Visibility.Hidden;
             ParseProgressBar.Visibility = Visibility.Hidden;
+
+            FinishAsyncProcess();
         }
 
         private void OnFactuSolEanAddTick(float progress)
         {
+            StartAsyncProcess();
+
             ParseProgressBar.Visibility = Visibility.Visible;
             ParseProgressBar.Value = progress;
             LoadInfoText.Visibility = Visibility.Visible;
