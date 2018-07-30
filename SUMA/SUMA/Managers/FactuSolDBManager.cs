@@ -16,13 +16,11 @@ namespace SUMA.Managers
 
     class FactuSolDBManager : Singleton<FactuSolDBManager>
     {
-        private string connection_string = "";
         private OleDbConnection connection = null;
 
         public void SetDataBasePath(string set)
         {
-            connection_string = @"Provider=Microsoft.ACE.OLEDB.12.0; Data Source=" + set + ";";
-            connection = new OleDbConnection(connection_string);
+            connection = Managers.DBManager.Instance.ConnectToDataSource(set);
         }
 
         public bool AddProducte(Managers.Producte prod)
@@ -39,7 +37,7 @@ namespace SUMA.Managers
 
                     OleDbCommand CheckCmd = new OleDbCommand(check_command_text, connection);
                     OleDbDataReader CheckData = Managers.DBManager.Instance.ExecuteReader(connection, CheckCmd);
-
+                    
                     bool already_exists = false;
                     bool sobreescriure = false;
 

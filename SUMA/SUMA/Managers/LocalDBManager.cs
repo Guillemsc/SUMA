@@ -14,13 +14,11 @@ namespace SUMA.Managers
 
     class LocalDBManager : Singleton<LocalDBManager>
     {
-        private string connection_string = "";
         private OleDbConnection connection = null;
 
         public void SetDataBasePath(string set)
         {
-            connection_string = @"Provider=Microsoft.ACE.OLEDB.12.0; Data Source=" + set + ";";
-            connection = new OleDbConnection(connection_string);
+            connection = Managers.DBManager.Instance.ConnectToDataSource(set);
         }
 
         public bool ClearDataBase()

@@ -11,6 +11,32 @@ namespace SUMA.Managers
 {
     class DBManager : Singleton<DBManager>
     {
+        public OleDbConnection ConnectToDataSource(string path)
+        {
+            OleDbConnection ret = null;
+
+            string connection_string = @"Provider=Microsoft.ACE.OLEDB.12.0; Data Source=" + path + ";";
+
+            try
+            {
+                ret = new OleDbConnection(connection_string);
+            }
+            catch (System.Data.OleDb.OleDbException exception)
+            {
+                MessageBoxResult messageBoxResult = System.Windows.MessageBox.Show(string.Format(exception.Message),
+                "Error", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Error);
+            }
+            catch (System.InvalidOperationException exception)
+            {
+                MessageBoxResult messageBoxResult = System.Windows.MessageBox.Show(string.Format(exception.Message),
+                "Error", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Error);
+            }
+
+            OpenConexion(ret);
+
+            return ret;
+        }
+
         public bool ExecuteQuery(OleDbConnection connection, OleDbCommand cmd)
         {
             bool ret = false;
@@ -81,6 +107,11 @@ namespace SUMA.Managers
                         connection.Open();
                 }
                 catch (System.Data.OleDb.OleDbException exception)
+                {
+                    MessageBoxResult messageBoxResult = System.Windows.MessageBox.Show(string.Format(exception.Message),
+                    "Error", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Error);
+                }
+                catch (System.InvalidOperationException exception)
                 {
                     MessageBoxResult messageBoxResult = System.Windows.MessageBox.Show(string.Format(exception.Message),
                     "Error", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Error);

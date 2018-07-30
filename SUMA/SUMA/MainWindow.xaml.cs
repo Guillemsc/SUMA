@@ -49,26 +49,23 @@ namespace SUMA
             bool exists = true;
             XDocument config = Managers.FileSystemManager.Instance.LoadConfigXML(out exists);
 
-            if (exists)
+            if (exists && config != null)
             {
                 string local_server_path = "";
                 string factu_sol_server_path = "";
+               
+               List<XElement> servidors_el = config.Element("configuration").Elements("servers").ToList();
 
-                if (config != null)
-                {
-                    List<XElement> servidors_el = config.Element("configuration").Elements("servers").ToList();
+               if (servidors_el.Count > 1)
+               {
+                   string local_name = servidors_el[0].Attribute("local_name").Value;
+                   local_server_path = AppDomain.CurrentDomain.BaseDirectory + local_name;
 
-                    if (servidors_el.Count > 1)
-                    {
-                        string local_name = servidors_el[0].Attribute("local_name").Value;
-                        local_server_path = AppDomain.CurrentDomain.BaseDirectory + local_name;
-
-                        factu_sol_server_path = servidors_el[1].Attribute("factu_sol_path").Value;
-                    }
-                }
-
-                Managers.LocalDBManager.Instance.SetDataBasePath(local_server_path);
-                Managers.FactuSolDBManager.Instance.SetDataBasePath(factu_sol_server_path);
+                   factu_sol_server_path = servidors_el[1].Attribute("factu_sol_path").Value;
+               }
+               
+               Managers.LocalDBManager.Instance.SetDataBasePath(local_server_path);
+               Managers.FactuSolDBManager.Instance.SetDataBasePath(factu_sol_server_path);
             }
             else
             {
