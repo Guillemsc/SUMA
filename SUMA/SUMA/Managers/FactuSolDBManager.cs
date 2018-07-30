@@ -46,6 +46,8 @@ namespace SUMA.Managers
                         if (CheckData.Read())
                             already_exists = true;
 
+                        CheckData.Close();
+
                         ret = true;
                     }
 
@@ -178,6 +180,8 @@ namespace SUMA.Managers
                         if (CheckData2.Read())
                             has_product = true;
 
+                        CheckData2.Close();
+
                         ret = true;
                     }
                 }
@@ -251,18 +255,34 @@ namespace SUMA.Managers
         {
             if (!adding_productes)
             {
-                on_product_add_tick -= product_add_tick;
+                if (on_product_add_tick != null)
+                {
+                    foreach (Delegate d in on_product_add_tick.GetInvocationList())
+                        on_product_add_tick -= (ProductAddProcessTick)d;
+                }
+
+                if (on_product_ean_add_finished != null)
+                {
+                    foreach (Delegate d in on_product_ean_add_finished.GetInvocationList())
+                        on_product_ean_add_finished -= (EanAddFinished)d;
+                }
+
+                if (on_product_add_finished != null)
+                {
+                    foreach (Delegate d in on_product_add_finished.GetInvocationList())
+                        on_product_add_finished -= (ProductAddFinished)d;
+                }
+
+                if (on_product_ean_add_tick != null)
+                {
+                    foreach (Delegate d in on_product_ean_add_tick.GetInvocationList())
+                        on_product_ean_add_tick -= (EanAddProcessTick)d;
+                }
+
                 on_product_add_tick += product_add_tick;
-                on_product_add_finished -= product_add_finished;
                 on_product_add_finished += product_add_finished;
-
-                on_product_ean_add_tick -= on_ean_add_tick;
                 on_product_ean_add_tick += on_ean_add_tick;
-
-                on_product_ean_add_finished -= ean_add_finished;
                 on_product_ean_add_finished += ean_add_finished;
-
-                on_product_ean_add_finished -= ProductEanAddFinished;
                 on_product_ean_add_finished += ProductEanAddFinished;
 
                 curr_prod = 0;
@@ -297,7 +317,6 @@ namespace SUMA.Managers
                         {
                             adding_productes = false;
                             add_productes_timer.Stop();
-                            on_product_ean_add_finished -= ProductEanAddFinished;
 
                             if (on_product_add_finished != null)
                                 on_product_add_finished();
@@ -314,7 +333,6 @@ namespace SUMA.Managers
                     {
                         adding_productes = false;
                         add_productes_timer.Stop();
-                        on_product_ean_add_finished -= ProductEanAddFinished;
 
                         if (on_product_add_finished != null)
                             on_product_add_finished();
@@ -366,9 +384,19 @@ namespace SUMA.Managers
         {
             if (!adding_eans)
             {
-                on_ean_add_tick -= ean_add_tick;
+                if (on_ean_add_tick != null)
+                {
+                    foreach (Delegate d in on_ean_add_tick.GetInvocationList())
+                        on_ean_add_tick -= (EanAddProcessTick)d;
+                }
+
+                if (on_ean_add_finished != null)
+                {
+                    foreach (Delegate d in on_ean_add_finished.GetInvocationList())
+                        on_ean_add_finished -= (EanAddFinished)d;  
+                }
+
                 on_ean_add_tick += ean_add_tick;
-                on_ean_add_finished -= ean_add_finished;
                 on_ean_add_finished += ean_add_finished;
 
                 curr_ean = 0;

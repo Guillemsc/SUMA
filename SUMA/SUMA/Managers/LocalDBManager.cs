@@ -82,6 +82,8 @@ namespace SUMA.Managers
                         f.productes.Add(prod);
                     }
 
+                    data.Close();
+
                     ret = true;
                 }
 
@@ -103,6 +105,8 @@ namespace SUMA.Managers
 
                     f.MakeEanProducteRelations();
 
+                    data2.Close();
+
                     ret = true;
                 }
 
@@ -117,6 +121,8 @@ namespace SUMA.Managers
                         f.nom = data3.GetString(0);
                         f.data_importacio = data3.GetDateTime(1);
                     }
+
+                    data3.Close();
                 }
 
                 Managers.DBManager.Instance.CloseConexion(connection);
@@ -132,24 +138,29 @@ namespace SUMA.Managers
             {
                 Managers.DBManager.Instance.OpenConexion(connection);
 
-                string command = "INSERT INTO RegistreImportacio(";
+                OleDbCommand Cmd3 = new OleDbCommand("DELETE FROM RegistreImportacio", connection);
+                ret = Managers.DBManager.Instance.ExecuteQuery(connection, Cmd3);
 
-                command += "[NomFitxer]";
-                command += ", [DataImport]";
+                if (ret)
+                {
+                    string command = "INSERT INTO RegistreImportacio(";
 
-                command += ")VALUES(";
+                    command += "[NomFitxer]";
+                    command += ", [DataImport]";
 
-                command += "@NomFitxer";
-                command += ", @DataImport";
+                    command += ")VALUES(";
 
-                command += ")";
+                    command += "@NomFitxer";
+                    command += ", @DataImport";
 
-                OleDbCommand Cmd = new OleDbCommand(command, connection);
-                Cmd.Parameters.Add("@NomFitxer", OleDbType.VarChar, 30).Value = fitx.nom;
-                Cmd.Parameters.Add("@DataImport", OleDbType.VarChar, 30).Value = fitx.data_importacio.ToString();
+                    command += ")";
 
-                ret = Managers.DBManager.Instance.ExecuteQuery(connection, Cmd);
+                    OleDbCommand Cmd = new OleDbCommand(command, connection);
+                    Cmd.Parameters.Add("@NomFitxer", OleDbType.VarChar, 30).Value = fitx.nom;
+                    Cmd.Parameters.Add("@DataImport", OleDbType.VarChar, 30).Value = fitx.data_importacio.ToString();
 
+                    ret = Managers.DBManager.Instance.ExecuteQuery(connection, Cmd);
+                }
                 Managers.DBManager.Instance.CloseConexion(connection);
             }
 
@@ -166,70 +177,102 @@ namespace SUMA.Managers
                 {
                     Managers.DBManager.Instance.OpenConexion(connection);
 
-                    string data_actual = DateTime.Now.ToShortTimeString();
-                    
-                    string command = "INSERT INTO ArticlesMagsa(";
+                    string check_command_text = "SELECT * FROM ArticlesMagsa WHERE Codi ='" + curr_prod.codi_article + "'";
 
-                    command += "[Linia]";
-                    command += ", [Codi]";
-                    command += ", [Baixa]";
-                    command += ", [Descripcio]";
-                    command += ", [Caixa]";
-                    command += ", [Fraccio]";
-                    command += ", [Pes]";
-                    command += ", [P_Cost]";
-                    command += ", [P_Recomanat]";
-                    command += ", [P_Fraccio]";
-                    command += ", [Iva]";
-                    command += ", [Familia]";
-                    command += ", [SubFamilia]";
-                    command += ", [Mesura (L)(M)(Q)]";
-                    command += ", [FactorConversio]";
-                    command += ", [U/C]";
-                    command += ", [Data]";
+                    OleDbCommand CheckCmd = new OleDbCommand(check_command_text, connection);
+                    OleDbDataReader CheckData = Managers.DBManager.Instance.ExecuteReader(connection, CheckCmd);
 
-                    command += ")VALUES(";
+                    bool already_exists = false;
+                    if (CheckData != null)
+                    {
+                        if (CheckData.Read())
+                            already_exists = true;
 
-                    command += "@Linia";
-                    command += ", @Codi";
-                    command += ", @Baixa";
-                    command += ", @Descripcio";
-                    command += ", @Caixa";
-                    command += ", @Fraccio";
-                    command += ", @Pes";
-                    command += ", @P_Cost";
-                    command += ", @P_Recomanat";
-                    command += ", @P_Fraccio";
-                    command += ", @Iva";
-                    command += ", @Familia";
-                    command += ", @SubFamilia";
-                    command += ", @Mesura";
-                    command += ", @FactorConversio";
-                    command += ", @UC";
-                    command += ", @Data";
+                        CheckData.Close();
 
-                    command += ")";
+                        ret = true;
+                    }
 
-                    OleDbCommand Cmd = new OleDbCommand(command, connection);
-                    Cmd.Parameters.Add("@Linia", OleDbType.VarChar, 1).Value = "L";
-                    Cmd.Parameters.Add("@Codi", OleDbType.VarChar, 6).Value = curr_prod.codi_article;
-                    Cmd.Parameters.Add("@Baixa", OleDbType.VarChar, 1).Value = curr_prod.marca_de_baixa_str;
-                    Cmd.Parameters.Add("@Descripcio", OleDbType.VarChar, 35).Value = curr_prod.descripcio;
-                    Cmd.Parameters.Add("@Caixa", OleDbType.Integer).Value = curr_prod.unitats_caixa;
-                    Cmd.Parameters.Add("@Fraccio", OleDbType.Integer).Value = curr_prod.unitats_fraccio;
-                    Cmd.Parameters.Add("@Pes", OleDbType.VarChar, 1).Value = curr_prod.marca_de_pes_str;
-                    Cmd.Parameters.Add("@P_Cost", OleDbType.Double).Value = curr_prod.preu_unitari;
-                    Cmd.Parameters.Add("@P_Recomanat", OleDbType.Double).Value = curr_prod.preu_venta_public_recomanat;
-                    Cmd.Parameters.Add("@P_Fraccio", OleDbType.Double).Value = curr_prod.preu_de_fraccio;
-                    Cmd.Parameters.Add("@Iva", OleDbType.VarChar, 1).Value = curr_prod.tipus_iva;
-                    Cmd.Parameters.Add("@Familia", OleDbType.VarChar, 2).Value = curr_prod.codi_familia;
-                    Cmd.Parameters.Add("@SubFamilia", OleDbType.VarChar, 2).Value = curr_prod.codi_sub_familia;
-                    Cmd.Parameters.Add("@Mesura", OleDbType.VarChar, 1).Value = curr_prod.unitats_mesura;
-                    Cmd.Parameters.Add("@FactorConversio", OleDbType.VarChar, 6).Value = curr_prod.factor_de_conversio;
-                    Cmd.Parameters.Add("@UC", OleDbType.Integer).Value = curr_prod.unitats_caixa;
-                    Cmd.Parameters.Add("@Data", OleDbType.Date).Value = data_actual;
+                    if(ret && already_exists)
+                    {
+                        string command3 = "DELETE FROM ArticlesMagsa WHERE Codi ='" + curr_prod.codi_article + "'";
 
-                    ret = Managers.DBManager.Instance.ExecuteQuery(connection, Cmd);                   
+                        OleDbCommand Cmd3 = new OleDbCommand(command3, connection);
+                        ret = Managers.DBManager.Instance.ExecuteQuery(connection, Cmd3);
+
+                        string command4 = "DELETE FROM BarresMagsa WHERE Codi ='" + curr_prod.codi_article + "'";
+
+                        OleDbCommand Cmd4 = new OleDbCommand(command4, connection);
+                        ret = Managers.DBManager.Instance.ExecuteQuery(connection, Cmd4);
+                    }
+
+                    if (ret)
+                    {
+                        string data_actual = DateTime.Now.ToShortTimeString();
+
+                        string command = "INSERT INTO ArticlesMagsa(";
+
+                        command += "[Linia]";
+                        command += ", [Codi]";
+                        command += ", [Baixa]";
+                        command += ", [Descripcio]";
+                        command += ", [Caixa]";
+                        command += ", [Fraccio]";
+                        command += ", [Pes]";
+                        command += ", [P_Cost]";
+                        command += ", [P_Recomanat]";
+                        command += ", [P_Fraccio]";
+                        command += ", [Iva]";
+                        command += ", [Familia]";
+                        command += ", [SubFamilia]";
+                        command += ", [Mesura (L)(M)(Q)]";
+                        command += ", [FactorConversio]";
+                        command += ", [U/C]";
+                        command += ", [Data]";
+
+                        command += ")VALUES(";
+
+                        command += "@Linia";
+                        command += ", @Codi";
+                        command += ", @Baixa";
+                        command += ", @Descripcio";
+                        command += ", @Caixa";
+                        command += ", @Fraccio";
+                        command += ", @Pes";
+                        command += ", @P_Cost";
+                        command += ", @P_Recomanat";
+                        command += ", @P_Fraccio";
+                        command += ", @Iva";
+                        command += ", @Familia";
+                        command += ", @SubFamilia";
+                        command += ", @Mesura";
+                        command += ", @FactorConversio";
+                        command += ", @UC";
+                        command += ", @Data";
+
+                        command += ")";
+
+                        OleDbCommand Cmd = new OleDbCommand(command, connection);
+                        Cmd.Parameters.Add("@Linia", OleDbType.VarChar, 1).Value = "L";
+                        Cmd.Parameters.Add("@Codi", OleDbType.VarChar, 6).Value = curr_prod.codi_article;
+                        Cmd.Parameters.Add("@Baixa", OleDbType.VarChar, 1).Value = curr_prod.marca_de_baixa_str;
+                        Cmd.Parameters.Add("@Descripcio", OleDbType.VarChar, 35).Value = curr_prod.descripcio;
+                        Cmd.Parameters.Add("@Caixa", OleDbType.Integer).Value = curr_prod.unitats_caixa;
+                        Cmd.Parameters.Add("@Fraccio", OleDbType.Integer).Value = curr_prod.unitats_fraccio;
+                        Cmd.Parameters.Add("@Pes", OleDbType.VarChar, 1).Value = curr_prod.marca_de_pes_str;
+                        Cmd.Parameters.Add("@P_Cost", OleDbType.Double).Value = curr_prod.preu_unitari;
+                        Cmd.Parameters.Add("@P_Recomanat", OleDbType.Double).Value = curr_prod.preu_venta_public_recomanat;
+                        Cmd.Parameters.Add("@P_Fraccio", OleDbType.Double).Value = curr_prod.preu_de_fraccio;
+                        Cmd.Parameters.Add("@Iva", OleDbType.VarChar, 1).Value = curr_prod.tipus_iva;
+                        Cmd.Parameters.Add("@Familia", OleDbType.VarChar, 2).Value = curr_prod.codi_familia;
+                        Cmd.Parameters.Add("@SubFamilia", OleDbType.VarChar, 2).Value = curr_prod.codi_sub_familia;
+                        Cmd.Parameters.Add("@Mesura", OleDbType.VarChar, 1).Value = curr_prod.unitats_mesura;
+                        Cmd.Parameters.Add("@FactorConversio", OleDbType.VarChar, 6).Value = curr_prod.factor_de_conversio;
+                        Cmd.Parameters.Add("@UC", OleDbType.Integer).Value = curr_prod.unitats_caixa;
+                        Cmd.Parameters.Add("@Data", OleDbType.Date).Value = data_actual;
+
+                        ret = Managers.DBManager.Instance.ExecuteQuery(connection, Cmd);
+                    }
                 }
             }
 
@@ -244,26 +287,53 @@ namespace SUMA.Managers
             {
                 Managers.DBManager.Instance.OpenConexion(connection);
 
-                string command = "INSERT INTO BarresMagsa(";
+                string check_command_text = "SELECT * FROM BarresMagsa WHERE Barres ='" + curr_ean.codi_ean + "'";
 
-                command += "[Linia]";
-                command += ", [Codi]";
-                command += ", [Barres]";
+                OleDbCommand CheckCmd = new OleDbCommand(check_command_text, connection);
+                OleDbDataReader CheckData = Managers.DBManager.Instance.ExecuteReader(connection, CheckCmd);
 
-                command += ")VALUES(";
+                bool already_exists = false;
+                if (CheckData != null)
+                {
+                    if (CheckData.Read())
+                        already_exists = true;
 
-                command += "@Linia";
-                command += ", @Codi";
-                command += ", @Barres";
+                    CheckData.Close();
 
-                command += ")";
+                    ret = true;
+                }
 
-                OleDbCommand Cmd = new OleDbCommand(command, connection);
-                Cmd.Parameters.Add("@Linia", OleDbType.VarChar, 1).Value = "E";
-                Cmd.Parameters.Add("@Codi", OleDbType.VarChar, 6).Value = curr_ean.codi_article;
-                Cmd.Parameters.Add("@Barres", OleDbType.VarChar, 13).Value = curr_ean.codi_ean;
+                if (ret && already_exists)
+                {
+                    string command4 = "DELETE FROM BarresMagsa WHERE Barres ='" + curr_ean.codi_ean + "'";
 
-                ret = Managers.DBManager.Instance.ExecuteQuery(connection, Cmd);
+                    OleDbCommand Cmd4 = new OleDbCommand(command4, connection);
+                    ret = Managers.DBManager.Instance.ExecuteQuery(connection, Cmd4);
+                }
+
+                if (ret)
+                {
+                    string command = "INSERT INTO BarresMagsa(";
+
+                    command += "[Linia]";
+                    command += ", [Codi]";
+                    command += ", [Barres]";
+
+                    command += ")VALUES(";
+
+                    command += "@Linia";
+                    command += ", @Codi";
+                    command += ", @Barres";
+
+                    command += ")";
+
+                    OleDbCommand Cmd = new OleDbCommand(command, connection);
+                    Cmd.Parameters.Add("@Linia", OleDbType.VarChar, 1).Value = "E";
+                    Cmd.Parameters.Add("@Codi", OleDbType.VarChar, 6).Value = curr_ean.codi_article;
+                    Cmd.Parameters.Add("@Barres", OleDbType.VarChar, 13).Value = curr_ean.codi_ean;
+
+                    ret = Managers.DBManager.Instance.ExecuteQuery(connection, Cmd);
+                }
             }
 
             return ret;

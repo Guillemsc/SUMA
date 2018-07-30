@@ -58,8 +58,7 @@ namespace SUMA
 
                if (servidors_el.Count > 1)
                {
-                   string local_name = servidors_el[0].Attribute("local_name").Value;
-                   local_server_path = AppDomain.CurrentDomain.BaseDirectory + local_name;
+                   local_server_path = servidors_el[0].Attribute("local_path").Value;
 
                    factu_sol_server_path = servidors_el[1].Attribute("factu_sol_path").Value;
                }
@@ -106,22 +105,14 @@ namespace SUMA
 
             DataImpLabel.Visibility = Visibility.Visible;
 
-            bool correct = Managers.LocalDBManager.Instance.ClearDataBase();
-
-            if (correct)
-            {
-                Managers.LocalDBManager.Instance.AddProductesAndEansAsync(fit.productes, fit.eans, 
-                    OnLocalProductesAndEansAddTick, OnLocalProductesAndEansAddFinish);
-            }
-
+            bool correct = true;
+           
+           Managers.LocalDBManager.Instance.AddProductesAndEansAsync(fit.productes, fit.eans, 
+               OnLocalProductesAndEansAddTick, OnLocalProductesAndEansAddFinish);
+           
             if(correct)
             {
                 correct = Managers.LocalDBManager.Instance.AddRegistre(fit);
-            }
-
-            if(correct)
-            {
-                CarregaArticlesDataGrid(fit.productes);
             }
 
             if(!correct)
@@ -144,6 +135,9 @@ namespace SUMA
         {
             LoadInfoText.Visibility = Visibility.Hidden;
             ParseProgressBar.Visibility = Visibility.Hidden;
+
+            Managers.LocalDBManager.Instance.LoadDataBase();
+            CarregaArticlesDataGrid(Managers.DataManager.Instance.GetFitxer().productes);
 
             FinishAsyncProcess();
         }
