@@ -44,6 +44,9 @@ namespace SUMA.Managers
                 if (prod != null)
                 {
                     prod.codis_ean.Add(eans[i]);
+
+                    if(prod.primer_ean == "")
+                        prod.primer_ean = eans[i].codi_ean;
                 }
             }
         }
@@ -106,6 +109,7 @@ namespace SUMA.Managers
         public ProducteUnitatsMesura unitats_mesura { get; set; }
         public double                factor_de_conversio { get; set; }
         public string                reservat_futures_ampliacions { get; set; }
+        public string                primer_ean = "";
 
         public List<CodiEan>         codis_ean = new List<CodiEan>();
     }

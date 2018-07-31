@@ -91,6 +91,7 @@ namespace SUMA.Managers
                                 command += ", [TIVART]";
                                 command += ", [PCOART]";
                                 command += ", [UPPART]";
+                                command += ", [EANART]";
 
                                 command += ")VALUES(";
 
@@ -99,6 +100,7 @@ namespace SUMA.Managers
                                 command += ", @TIVART";
                                 command += ", @PCOART";
                                 command += ", @UPPART";
+                                command += ", @EANART";
 
                                 command += ")";
 
@@ -108,6 +110,7 @@ namespace SUMA.Managers
                                 Cmd.Parameters.Add("@TIVART", OleDbType.Integer).Value = prod.tipus_iva;
                                 Cmd.Parameters.Add("@PCOART", OleDbType.Double).Value = prod.preu_unitari;
                                 Cmd.Parameters.Add("@UPPART", OleDbType.Integer).Value = prod.unitats_caixa;
+                                Cmd.Parameters.Add("@EANART", OleDbType.VarChar, 50).Value = prod.primer_ean;
 
                                 ret = Managers.DBManager.Instance.ExecuteQuery(connection, Cmd);
 

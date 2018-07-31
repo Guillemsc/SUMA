@@ -287,7 +287,8 @@ namespace SUMA.Managers
             {
                 Managers.DBManager.Instance.OpenConexion(connection);
 
-                string check_command_text = "SELECT * FROM BarresMagsa WHERE Barres ='" + curr_ean.codi_ean + "'";
+                string check_command_text = "SELECT * FROM BarresMagsa WHERE Barres ='" + curr_ean.codi_ean + "' " +
+                    "AND Codi = '" + curr_ean.codi_article + "'";
 
                 OleDbCommand CheckCmd = new OleDbCommand(check_command_text, connection);
                 OleDbDataReader CheckData = Managers.DBManager.Instance.ExecuteReader(connection, CheckCmd);
@@ -305,7 +306,8 @@ namespace SUMA.Managers
 
                 if (ret && already_exists)
                 {
-                    string command4 = "DELETE FROM BarresMagsa WHERE Barres ='" + curr_ean.codi_ean + "'";
+                    string command4 = "DELETE FROM BarresMagsa WHERE Barres ='" + curr_ean.codi_ean + "' " +
+                        "AND Codi = '" + curr_ean.codi_article + "'";
 
                     OleDbCommand Cmd4 = new OleDbCommand(command4, connection);
                     ret = Managers.DBManager.Instance.ExecuteQuery(connection, Cmd4);
